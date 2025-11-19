@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 همکلاسی یاب | ورود</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --persian-blue: #1e3a8a;
+            --persian-turquoise: #06b6d4;
+            --persian-red: #dc2626;
+            --persian-saffron: #f59e0b;
+            --persian-ochre: #92400e;
+            --persian-green: #059669;
+            --light-persian-blue: #dbeafe;
+            --gradient-primary: linear-gradient(135deg, var(--persian-blue), var(--persian-turquoise));
+            --gradient-secondary: linear-gradient(135deg, var(--persian-red), var(--persian-saffron));
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        /* Background Pattern */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e3a8a' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            z-index: -1;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background: var(--gradient-primary);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.05);
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-nav .nav-link {
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85) !important;
+            margin: 0 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white !important;
+        }
+
+        /* Login Section */
+        .login-section {
+            padding: 5rem 0;
+            position: relative;
+            overflow: hidden;
+            min-height: calc(100vh - 76px);
+            display: flex;
+            align-items: center;
+        }
+
+        .login-container {
+            max-width: 500px; /* Slightly smaller for login */
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            width: 100%;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: var(--gradient-secondary);
+            border-radius: 2px;
+            animation: expandWidth 1.2s ease-out;
+        }
+
+        /* Login Form */
+        .login-form {
+            background-color: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            border-top: 5px solid var(--persian-blue);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+            animation: fadeIn 1s ease-out;
+            animation-fill-mode: both;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group:focus-within {
+            transform: translateY(-2px);
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.2s; }
+        .form-group:nth-child(3) { animation-delay: 0.3s; }
+        .form-group:nth-child(4) { animation-delay: 0.4s; }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--persian-blue);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+        }
+
+        .form-label i {
+            margin-left: 0.5rem;
+            font-size: 1.2rem;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .form-group:hover .form-label i {
+            transform: scale(1.2) rotate(5deg);
+            color: var(--persian-turquoise);
+        }
+
+        .form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #f8fafc;
+        }
+
+        .form-control:focus {
+            border-color: var(--persian-turquoise);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+            outline: none;
+            background-color: white;
+        }
+
+        .btn-submit {
+            background: var(--gradient-secondary);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 1.2s ease-out;
+            animation-delay: 0.5s;
+            animation-fill-mode: both;
+        }
+
+        .btn-submit::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.5s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+
+        .btn-submit:hover::before {
+            left: 100%;
+        }
+
+        .btn-submit i {
+            margin-left: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-submit:hover i {
+            transform: translateX(5px);
+        }
+        
+        /* Password Field */
+        .password-container {
+            position: relative;
+        }
+
+        .password-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .password-icon:hover {
+            color: var(--persian-blue);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .password-input {
+            padding-right: 3rem !important;
+        }
+        
+        /* Checkbox */
+        .form-check {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            color: #475569;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--persian-turquoise);
+            border-color: var(--persian-turquoise);
+        }
+
+        /* Divider */
+        .divider {
+            text-align: center;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: #e2e8f0;
+        }
+
+        .divider span {
+            background-color: white;
+            padding: 0 1rem;
+            color: #64748b;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Decorative Elements */
+        .decorative-circle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+        .circle-1 {
+            width: 300px;
+            height: 300px;
+            background-color: var(--persian-turquoise);
+            top: -150px;
+            left: -150px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .circle-2 {
+            width: 200px;
+            height: 200px;
+            background-color: var(--persian-saffron);
+            bottom: -100px;
+            right: -100px;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+
+        .circle-3 {
+            width: 150px;
+            height: 150px;
+            background-color: var(--persian-red);
+            top: 50%;
+            right: -75px;
+            animation: float 7s ease-in-out infinite 2s;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes expandWidth {
+            from { width: 0; }
+            to { width: 100px; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .page-title { font-size: 2rem; }
+            .login-form { padding: 2rem; }
+            .navbar-brand { font-size: 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-mortarboard-fill ms-2"></i>
+                همکلاسی یاب
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="bi bi-house-fill ms-1"></i>
+                            خانه
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register">
+                            <i class="bi bi-person-plus-fill ms-1"></i>
+                            ثبت اطلاعات
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">
+                            <i class="bi bi-info-circle-fill ms-1"></i>
+                            درباره برنامه
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Section -->
+    <section class="login-section">
+        <div class="decorative-circle circle-1"></div>
+        <div class="decorative-circle circle-2"></div>
+        <div class="decorative-circle circle-3"></div>
+        <div class="container">
+            <div class="login-container">
+                <h2 class="page-title">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    ورود به حساب کاربری
+                </h2>
+                
+                <form method="POST" action="/login" class="login-form" id="loginForm">
+                    <div class="form-group">
+                        <label for="username" class="form-label">
+                            <i class="bi bi-person"></i>
+                            نام کاربری
+                        </label>
+                        <input type="text" name="username" id="username" class="form-control" placeholder="نام کاربری خود را وارد کنید" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password" class="form-label">
+                            <i class="bi bi-lock"></i>
+                            رمز عبور
+                        </label>
+                        <div class="password-container">
+                            <input type="password" name="password" id="password" class="form-control password-input" placeholder="رمز عبور خود را وارد کنید" required>
+                            <i class="bi bi-eye-slash password-icon" id="passwordToggle"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-check">
+                            <div>
+                                <input class="form-check-input" type="checkbox" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">
+                                    مرا به خاطر بسپار
+                                </label>
+                            </div>
+                            <a href="#" style="color: var(--persian-blue); text-decoration: none;">رمز عبور را فراموش کرده‌ام؟</a>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-box-arrow-in-left"></i>
+                        ورود
+                    </button>
+                </form>
+
+                <div class="divider">
+                    <span>یا</span>
+                </div>
+
+                <p class="text-center">
+                    حساب کاربری ندارید؟
+                    <a href="/register" style="color: var(--persian-blue); text-decoration: none; font-weight: 600;">ثبت‌نام کنید</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const password = document.getElementById('password');
+            const passwordToggle = document.getElementById('passwordToggle');
+            const loginForm = document.getElementById('loginForm');
+            
+            // Toggle password visibility
+            passwordToggle.addEventListener('click', function() {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                this.classList.toggle('bi-eye');
+                this.classList.toggle('bi-eye-slash');
+            });
+
+            // Simple client-side validation (optional but good UX)
+            loginForm.addEventListener('submit', function(event) {
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                if (!username || !password) {
+                    event.preventDefault();
+                    alert('لطفاً نام کاربری و رمز عبور را وارد کنید.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
