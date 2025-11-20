@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, abort
+from flask import Flask, render_template, request, redirect, url_for, session, abort, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
@@ -20,6 +20,8 @@ class User(db.Model):
     major = db.Column(db.String(100))
     grade = db.Column(db.String(50))
     password_hash = db.Column(db.String(128), nullable=False)
+    # ✨ MODIFIED: Added ip_address field with a unique constraint
+    ip_address = db.Column(db.String(45), nullable=False, unique=True)
 
 # 💬 مدل پیام
 class Message(db.Model):
@@ -30,8 +32,10 @@ class Message(db.Model):
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
 
 # 🧱 ساخت دیتابیس در صورت عدم وجود
-with app.app_context():
-    db.create_all()
+# ✨ NOTE: We will use migrations instead of this for updating the schema.
+# You can comment out or remove this line after the first run.
+# with app.app_context():
+#     db.create_all()
 
 # --- مسیرهای اصلی (Public) ---
 
@@ -48,16 +52,31 @@ def about():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        # ✨ MODIFIED: Get user's IP address
+        user_ip = request.remote_addr
+        
+        # ✨ MODIFIED: Check if a user with this IP already exists
+        existing_user = User.query.filter_by(ip_address=user_ip).first()
+        
+        if existing_user:
+            # If user exists, show an error message and redirect to register page
+            flash('شما قبلاً با این آدرس IP ثبت‌نام کرده‌اید. هر آدرس IP مجاز به ساخت تنها یک حساب کاربری است.', 'error')
+            return redirect(url_for('register'))
+        
+        # If user doesn't exist, proceed with registration
         hashed_password = generate_password_hash(request.form['password'], method='pbkdf2:sha256')
         new_user = User(
             name=request.form['name'],
             major=request.form['major'],
             grade=request.form['grade'],
-            password_hash=hashed_password
+            password_hash=hashed_password,
+            # ✨ MODIFIED: Save the IP address with the new user
+            ip_address=user_ip
         )
         db.session.add(new_user)
         db.session.commit()
         return redirect(url_for('login'))
+        
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -147,7 +166,7 @@ def chat(other_user_id):
 
     other_user = User.query.get_or_404(other_user_id)
     
-    # Fetch all messages between the two users
+    # Fetch all messages between two users
     messages = Message.query.filter(
         or_(
             and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id),
@@ -205,7 +224,7 @@ def inbox(user_id):
         )
     ).all()
     
-    # Format the data for the template
+    # Format data for the template
     formatted_conversations = []
     for conv in conversations:
         other_user_id = conv.user1_id if conv.user1_id != current_user_id else conv.user2_id
@@ -221,16 +240,6 @@ def inbox(user_id):
     formatted_conversations.sort(key=lambda x: x['last_message_timestamp'], reverse=True)
 
     return render_template('inbox.html', conversations=formatted_conversations)
-
-# ⛔️ DEPRECATED: The old send_message route and template are no longer needed.
-# You can safely delete send_message.html and this route.
-# @app.route('/send_message/<int:receiver_id>', methods=['GET', 'POST'])
-# def send_message(receiver_id):
-#     ...
-
-# @app.route('/delete_message/<int:message_id>/<int:user_id>', methods=['POST'])
-# def delete_message(message_id, user_id):
-#     ...
 
 
 if __name__ == '__main__':
