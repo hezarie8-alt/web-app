@@ -70,7 +70,7 @@ def register():
             major=request.form['major'],
             grade=request.form['grade'],
             password_hash=hashed_password,
-            # ✨ MODIFIED: Save the IP address with the new user
+            # ✨ MODIFIED: Save IP address with the new user
             ip_address=user_ip
         )
         db.session.add(new_user)
@@ -101,14 +101,25 @@ def logout():
 
 @app.route('/match')
 def match():
+    # ✨ MODIFIED: Get the current user's ID
+    current_user_id = session.get('current_user_id')
+    if not current_user_id:
+        return redirect(url_for('login'))
+
     q = request.args.get('q')
+    # ✨ MODIFIED: Exclude the current user from the query
+    query = User.query.filter(User.id != current_user_id)
+
     if q:
-        users = User.query.filter(
+        # Apply the search filter to the existing query
+        users = query.filter(
             (User.major.contains(q)) | (User.name.contains(q))
         ).all()
     else:
-        users = User.query.all()
-    return render_template('match.html', users=users)
+        # Get all users except the current one
+        users = query.all()
+        
+    return render_template('match.html', users=users, current_user_id=current_user_id)
 
 @app.route('/profile')
 def profile():

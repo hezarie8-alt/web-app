@@ -158,6 +158,21 @@
             font-size: 1.2rem;
         }
 
+        /* ✨ NEW: Clear Search Button */
+        .search-clear-btn {
+            position: absolute;
+            left: 5rem; /* Position it inside the input */
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: none; /* Hidden by default */
+        }
+        .search-clear-btn:hover {
+            color: var(--persian-red);
+        }
+
         .search-button {
             background: var(--gradient-primary);
             color: white;
@@ -215,7 +230,7 @@
             font-size: 2.5rem;
             font-weight: 700;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            object-fit: cover; /* Ensures the image covers the area */
+            object-fit: cover;
         }
 
         .user-name {
@@ -303,6 +318,30 @@
             font-size: 1.1rem;
             color: #64748b;
             margin-bottom: 2rem;
+        }
+
+        /* ✨ NEW: Generic button style for empty state */
+        .btn-primary-custom {
+            display: inline-flex;
+            align-items: center;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .btn-primary-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+        .btn-primary-custom i {
+            margin-left: 0.5rem;
         }
 
         /* Decorative Elements */
@@ -393,6 +432,13 @@
                             جست‌وجو
                         </a>
                     </li>
+                    <!-- ✨ NEW: Inbox Link -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="/inbox/{{ current_user_id }}">
+                            <i class="bi bi-envelope-fill ms-1"></i>
+                            صندوق پیام
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/about">
                             <i class="bi bi-info-circle-fill ms-1"></i>
@@ -416,11 +462,15 @@
                 </h2>
 
                 <!-- Search Form -->
-                <form method="GET" action="/match" class="search-form">
+                <form method="GET" action="/match" class="search-form" id="searchForm">
                     <div class="search-input-group">
                         <i class="bi bi-search search-icon"></i>
-                        <input type="text" name="q" class="search-input" placeholder="جست‌وجو بر اساس رشته یا نام..." value="{{ request.args.get('q') or '' }}">
-                        <button type="submit" class="search-button">
+                        <input type="text" name="q" class="search-input" id="searchInput" placeholder="جست‌وجو بر اساس رشته یا نام..." value="{{ request.args.get('q') or '' }}">
+                        <!-- ✨ NEW: Clear Button -->
+                        <button type="button" class="search-clear-btn" id="clearSearchBtn" title="پاک کردن">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                        <button type="submit" class="search-button" id="searchButton">
                             <i class="bi bi-search"></i>
                             جست‌وجو
                         </button>
@@ -431,7 +481,6 @@
                     <div class="users-grid">
                         {% for user in users %}
                         <div class="user-card">
-                            <!-- ✨ Improved Avatar -->
                             <img src="https://ui-avatars.com/api/?name={{ user.name|urlencode }}&background=1e3a8a&color=fff&size=128" alt="{{ user.name }}" class="user-avatar">
                             
                             <h3 class="user-name">{{ user.name }}</h3>
@@ -440,7 +489,6 @@
                                     <i class="bi bi-mortarboard"></i>
                                     رشته: {{ user.major }}
                                 </li>
-                                <!-- ❌ Removed 'course' line for consistency -->
                                 <li>
                                     <i class="bi bi-award"></i>
                                     مقطع: {{ user.grade }}
@@ -451,7 +499,6 @@
                                     <i class="bi bi-envelope"></i>
                                     ارسال پیام
                                 </a>
-                                <!-- 🛡️ Removed 'Delete Account' button for security and UX reasons -->
                             </div>
                         </div>
                         {% endfor %}
@@ -465,6 +512,11 @@
                         <p class="empty-description">
                             با جستجوی کلمات کلیدی مختلف، همکلاسی‌های خود را پیدا کنید.
                         </p>
+                        <!-- ✨ NEW: Button to go back home -->
+                        <a href="/" class="btn-primary-custom">
+                            <i class="bi bi-house-door"></i>
+                            بازگشت به صفحه اصلی
+                        </a>
                     </div>
                 {% endif %}
             </div>
@@ -472,4 +524,35 @@
     </section>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+            const searchForm = document.getElementById('searchForm');
+            const searchButton = document.getElementById('searchButton');
+
+            // ✨ NEW: Show/hide clear button based on input content
+            searchInput.addEventListener('input', function() {
+                if (this.value.length > 0) {
+                    clearBtn.style.display = 'block';
+                } else {
+                    clearBtn.style.display = 'none';
+                }
+            });
+
+            // ✨ NEW: Clear search input
+            clearBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                clearBtn.style.display = 'none';
+                searchInput.focus();
+            });
+
+            // ✨ NEW: Add loading state to search button
+            searchForm.addEventListener('submit', function() {
+                searchButton.disabled = true;
+                searchButton.innerHTML = '<i class="bi bi-hourglass-split"></i> در حال جستجو...';
+            });
+        });
+    </script>
 </body>
+</html>
