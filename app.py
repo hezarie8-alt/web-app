@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, abort, flash
+from flask import Flask, render_template, request, redirect, url_for, session, abort, flash 
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
@@ -12,7 +12,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-
 # 🧑‍🎓 مدل کاربر
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -20,8 +19,7 @@ class User(db.Model):
     major = db.Column(db.String(100))
     grade = db.Column(db.String(50))
     password_hash = db.Column(db.String(128), nullable=False)
-    # ✨ MODIFIED: Added ip_address field with a unique constraint
-    ip_address = db.Column(db.String(45), nullable=False, unique=True)
+    ip_address = db.Column(db.String(45), nullable=False)  # Removed unique=True
 
 # 💬 مدل پیام
 class Message(db.Model):
@@ -32,13 +30,10 @@ class Message(db.Model):
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
 
 # 🧱 ساخت دیتابیس در صورت عدم وجود
-# ✨ NOTE: We will use migrations instead of this for updating the schema.
-# You can comment out or remove this line after the first run.
-# with app.app_context():
-#     db.create_all()
+with app.app_context():
+    db.create_all()  # فقط جدول‌هایی که وجود ندارند ساخته می‌شوند
 
 # --- مسیرهای اصلی (Public) ---
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -47,36 +42,22 @@ def index():
 def about():
     return render_template('about.html')
 
-# --- مسیرهای احراز هویت (Authentication) ---
-
+# --- مسیرهای احراز هویت ---
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        # ✨ MODIFIED: Get user's IP address
         user_ip = request.remote_addr
-        
-        # ✨ MODIFIED: Check if a user with this IP already exists
-        existing_user = User.query.filter_by(ip_address=user_ip).first()
-        
-        if existing_user:
-            # If user exists, show an error message and redirect to register page
-            flash('شما قبلاً با این آدرس IP ثبت‌نام کرده‌اید. هر آدرس IP مجاز به ساخت تنها یک حساب کاربری است.', 'error')
-            return redirect(url_for('register'))
-        
-        # If user doesn't exist, proceed with registration
         hashed_password = generate_password_hash(request.form['password'], method='pbkdf2:sha256')
         new_user = User(
             name=request.form['name'],
             major=request.form['major'],
             grade=request.form['grade'],
             password_hash=hashed_password,
-            # ✨ MODIFIED: Save the IP address with the new user
             ip_address=user_ip
         )
         db.session.add(new_user)
         db.session.commit()
         return redirect(url_for('login'))
-        
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -97,8 +78,7 @@ def logout():
     session.pop('current_user_id', None)
     return redirect(url_for('login'))
 
-# --- مسیرهای محافظت شده (Protected) ---
-
+# --- مسیرهای محافظت شده ---
 @app.route('/match')
 def match():
     q = request.args.get('q')
@@ -139,10 +119,14 @@ def update_password():
     if not current_user_id:
         return redirect(url_for('login'))
     user = User.query.get(current_user_id)
-    if user and check_password_hash(user.password_hash, request.form['current_password']):
-        new_hashed_password = generate_password_hash(request.form['new_password'], method='pbkdf2:sha256')
-        user.password_hash = new_hashed_password
-        db.session.commit()
+    if user:
+        if check_password_hash(user.password_hash, request.form['current_password']):
+            new_hashed_password = generate_password_hash(request.form['new_password'], method='pbkdf2:sha256')
+            user.password_hash = new_hashed_password
+            db.session.commit()
+        else:
+            flash("رمز فعلی اشتباه است.", "error")
+            return redirect(url_for('profile'))
     return redirect(url_for('profile'))
 
 @app.route('/delete_account', methods=['POST'])
@@ -157,90 +141,58 @@ def delete_account():
         session.pop('current_user_id', None)
     return redirect(url_for('register'))
 
-# ✨ NEW: Chat page to view conversation with a specific user
+# --- Chat ---
 @app.route('/chat/<int:other_user_id>')
 def chat(other_user_id):
     current_user_id = session.get('current_user_id')
     if not current_user_id:
         return redirect(url_for('login'))
-
     other_user = User.query.get_or_404(other_user_id)
-    
-    # Fetch all messages between two users
     messages = Message.query.filter(
         or_(
             and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id),
             and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id)
         )
     ).order_by(Message.timestamp.asc()).all()
-
     return render_template('chat.html', other_user=other_user, messages=messages)
 
-# ✨ NEW: Route to send a message from the chat page
 @app.route('/send_chat_message/<int:other_user_id>', methods=['POST'])
 def send_chat_message(other_user_id):
     current_user_id = session.get('current_user_id')
     if not current_user_id:
         return redirect(url_for('login'))
-
     content = request.form['content']
-    if content:
+    if content.strip():
         msg = Message(sender_id=current_user_id, receiver_id=other_user_id, content=content)
         db.session.add(msg)
         db.session.commit()
-    
-    # Redirect back to the chat page
     return redirect(url_for('chat', other_user_id=other_user_id))
 
-# ✨ MODIFIED: Inbox now shows a list of conversations
+# --- Inbox simplified for SQLite ---
 @app.route('/inbox/<int:user_id>')
 def inbox(user_id):
     current_user_id = session.get('current_user_id')
     if not current_user_id or current_user_id != user_id:
-        abort(403) # Forbidden
-
-    # This query finds the latest message for each conversation partner
-    subquery = db.session.query(
-        Message.receiver_id,
-        Message.sender_id,
-        db.func.max(Message.timestamp).label('max_timestamp')
-    ).filter(
-        or_(Message.receiver_id == current_user_id, Message.sender_id == current_user_id)
-    ).group_by(
-        db.func.least(Message.receiver_id, Message.sender_id),
-        db.func.greatest(Message.receiver_id, Message.sender_id)
-    ).subquery()
-
-    conversations = db.session.query(
-        Message.content,
-        Message.timestamp,
-        db.func.least(Message.receiver_id, Message.sender_id).label('user1_id'),
-        db.func.greatest(Message.receiver_id, Message.sender_id).label('user2_id')
-    ).join(
-        subquery, and_(
-            Message.timestamp == subquery.c.max_timestamp,
-            db.func.least(Message.receiver_id, Message.sender_id) == subquery.c.user1_id,
-            db.func.greatest(Message.receiver_id, Message.sender_id) == subquery.c.user2_id
-        )
-    ).all()
-    
-    # Format data for the template
+        abort(403)
+    messages = Message.query.filter(
+        or_(Message.sender_id == current_user_id, Message.receiver_id == current_user_id)
+    ).order_by(Message.timestamp.desc()).all()
+    conversations = {}
+    for msg in messages:
+        other_id = msg.receiver_id if msg.sender_id == current_user_id else msg.sender_id
+        if other_id not in conversations:
+            conversations[other_id] = msg
     formatted_conversations = []
-    for conv in conversations:
-        other_user_id = conv.user1_id if conv.user1_id != current_user_id else conv.user2_id
-        other_user = User.query.get(other_user_id)
+    for other_id, msg in conversations.items():
+        other_user = User.query.get(other_id)
         formatted_conversations.append({
             'other_user_id': other_user.id,
             'other_user_name': other_user.name,
-            'last_message_content': conv.content,
-            'last_message_timestamp': conv.timestamp
+            'last_message_content': msg.content,
+            'last_message_timestamp': msg.timestamp
         })
-
-    # Sort conversations by the latest message time
     formatted_conversations.sort(key=lambda x: x['last_message_timestamp'], reverse=True)
-
     return render_template('inbox.html', conversations=formatted_conversations)
-
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
