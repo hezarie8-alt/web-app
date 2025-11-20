@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, a
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
-from sqlalchemy import or_, and_, case # ✨ MOVED: Moved 'case' import to the top
+from sqlalchemy import or_, and_, case
 
 # 🔧 تنظیمات اولیه اپلیکیشن
 app = Flask(__name__)
@@ -16,12 +16,13 @@ migrate = Migrate(app, db)
 # 🧑‍🎓 مدل کاربر
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
+    # ✨ MODIFIED: Name must now be unique
+    name = db.Column(db.String(100), nullable=False, unique=True)
     major = db.Column(db.String(100))
     grade = db.Column(db.String(50))
     password_hash = db.Column(db.String(128), nullable=False)
-    # ✨ MODIFIED: Added ip_address field with a unique constraint
-    ip_address = db.Column(db.String(45), nullable=False, unique=True)
+    # ✨ REMOVED: ip_address field is no longer needed for this logic
+    # ip_address = db.Column(db.String(45), nullable=False, unique=True)
 
 # 💬 مدل پیام
 class Message(db.Model):
@@ -30,12 +31,6 @@ class Message(db.Model):
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
-
-# 🧱 ساخت دیتابیس در صورت عدم وجود
-# ✨ NOTE: We will use migrations instead of this for updating the schema.
-# You can comment out or remove this line after the first run.
-# with app.app_context():
-#     db.create_all()
 
 # --- مسیرهای اصلی (Public) ---
 
@@ -52,15 +47,12 @@ def about():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        # ✨ MODIFIED: Get user's IP address
-        user_ip = request.remote_addr
-        
-        # ✨ MODIFIED: Check if a user with this IP already exists
-        existing_user = User.query.filter_by(ip_address=user_ip).first()
+        # ✨ MODIFIED: Check if a user with this NAME already exists
+        existing_user = User.query.filter_by(name=request.form['name']).first()
         
         if existing_user:
             # If user exists, show an error message and redirect to register page
-            flash('شما قبلاً با این آدرس IP ثبت‌نام کرده‌اید. هر آدرس IP مجاز به ساخت تنها یک حساب کاربری است.', 'error')
+            flash('این نام کاربری قبلاً استفاده شده است. لطفاً نام دیگری انتخاب کنید.', 'error')
             return redirect(url_for('register'))
         
         # If user doesn't exist, proceed with registration
@@ -69,9 +61,7 @@ def register():
             name=request.form['name'],
             major=request.form['major'],
             grade=request.form['grade'],
-            password_hash=hashed_password,
-            # ✨ MODIFIED: Save IP address with the new user
-            ip_address=user_ip
+            password_hash=hashed_password
         )
         db.session.add(new_user)
         db.session.commit()
@@ -101,30 +91,20 @@ def logout():
 
 @app.route('/match')
 def match():
-    # ✨ MODIFIED: Get current user's ID
     current_user_id = session.get('current_user_id')
     if not current_user_id:
         return redirect(url_for('login'))
 
     q = request.args.get('q')
-    
-    # ✨ MODIFIED: Exclude the current user from the query
-    # This is correct behavior: a user should not be able to message themselves.
     query = User.query.filter(User.id != current_user_id)
 
     if q:
-        # Apply the search filter to the existing query
         users = query.filter(
             (User.major.contains(q)) | (User.name.contains(q))
         ).all()
     else:
-        # Get all users except the current one
         users = query.all()
-    
-    # ✨ DEBUG: Print to console to help with debugging
-    print(f"DEBUG: Current User ID: {current_user_id}")
-    print(f"DEBUG: Found {len(users)} other users.")
-
+        
     return render_template('match.html', users=users, current_user_id=current_user_id)
 
 @app.route('/profile')
@@ -144,7 +124,15 @@ def update_profile():
         return redirect(url_for('login'))
     user = User.query.get(current_user_id)
     if user:
-        user.name = request.form['name']
+        # ✨ MODIFIED: Check if the new name is taken by another user
+        new_name = request.form['name']
+        if new_name != user.name:
+            existing_user = User.query.filter_by(name=new_name).first()
+            if existing_user:
+                flash('نام کاربری جدید توسط شخص دیگری استفاده شده است.', 'error')
+                return redirect(url_for('profile'))
+
+        user.name = new_name
         user.major = request.form['major']
         user.grade = request.form['grade']
         db.session.commit()
@@ -226,7 +214,7 @@ def inbox(user_id):
         else_=Message.sender_id
     )
 
-    # Subquery to find the latest message per conversation
+    # Subquery to find latest message per conversation
     subquery = db.session.query(
         user1.label('user1_id'),
         user2.label('user2_id'),
