@@ -204,57 +204,53 @@ def send_chat_message(other_user_id):
     return redirect(url_for('chat', other_user_id=other_user_id))
 
 # ✨ MODIFIED: Inbox now shows a list of conversations
+from sqlalchemy import case
+
 @app.route('/inbox/<int:user_id>')
 def inbox(user_id):
     current_user_id = session.get('current_user_id')
     if not current_user_id or current_user_id != user_id:
         abort(403)
 
-    # --- SUBQUERY اصلاح‌شده + LABEL صحیح ---
-    subquery = (
-        db.session.query(
-            db.func.least(Message.receiver_id, Message.sender_id).label('user1_id'),
-            db.func.greatest(Message.receiver_id, Message.sender_id).label('user2_id'),
-            db.func.max(Message.timestamp).label('max_timestamp')
-        )
-        .filter(
-            or_(
-                Message.receiver_id == current_user_id,
-                Message.sender_id == current_user_id
-            )
-        )
-        .group_by(
-            db.func.least(Message.receiver_id, Message.sender_id),
-            db.func.greatest(Message.receiver_id, Message.sender_id)
-        )
-        .subquery()
+    # Create SQLite-safe least/greatest expressions
+    user1 = case(
+        (Message.receiver_id < Message.sender_id, Message.receiver_id),
+        else_=Message.sender_id
+    )
+    user2 = case(
+        (Message.receiver_id > Message.sender_id, Message.receiver_id),
+        else_=Message.sender_id
     )
 
-    # --- QUERY اصلی بدون خطا ---
-    conversations = (
-        db.session.query(
-            Message.content,
-            Message.timestamp,
-            db.func.least(Message.receiver_id, Message.sender_id).label('user1_id'),
-            db.func.greatest(Message.receiver_id, Message.sender_id).label('user2_id')
-        )
-        .join(
-            subquery,
-            and_(
-                Message.timestamp == subquery.c.max_timestamp,
-                db.func.least(Message.receiver_id, Message.sender_id) == subquery.c.user1_id,
-                db.func.greatest(Message.receiver_id, Message.sender_id) == subquery.c.user2_id
-            )
-        )
-        .all()
-    )
+    # Subquery to find latest message per conversation
+    subquery = db.session.query(
+        user1.label('user1_id'),
+        user2.label('user2_id'),
+        db.func.max(Message.timestamp).label('max_timestamp')
+    ).filter(
+        or_(Message.receiver_id == current_user_id, Message.sender_id == current_user_id)
+    ).group_by(
+        user1, user2
+    ).subquery()
 
-    # --- آماده‌سازی داده برای HTML بدون تغییر قالب ---
+    conversations = db.session.query(
+        Message.content,
+        Message.timestamp,
+        user1.label('user1_id'),
+        user2.label('user2_id')
+    ).join(
+        subquery,
+        and_(
+            Message.timestamp == subquery.c.max_timestamp,
+            user1 == subquery.c.user1_id,
+            user2 == subquery.c.user2_id
+        )
+    ).all()
+
     formatted_conversations = []
     for conv in conversations:
         other_user_id = conv.user1_id if conv.user1_id != current_user_id else conv.user2_id
         other_user = User.query.get(other_user_id)
-
         formatted_conversations.append({
             'other_user_id': other_user.id,
             'other_user_name': other_user.name,
@@ -262,13 +258,9 @@ def inbox(user_id):
             'last_message_timestamp': conv.timestamp
         })
 
-    formatted_conversations.sort(
-        key=lambda x: x['last_message_timestamp'],
-        reverse=True
-    )
+    formatted_conversations.sort(key=lambda x: x['last_message_timestamp'], reverse=True)
 
     return render_template('inbox.html', conversations=formatted_conversations)
-
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
