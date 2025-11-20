@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📬 صندوق پیام‌ها</title>
+    <title>📬 گفتگوها</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -33,25 +33,12 @@
             overflow-x: hidden;
         }
 
-        /* Background Pattern */
-        .bg-pattern {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e3a8a' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            z-index: -1;
-        }
-
         /* Navigation Bar */
         .navbar {
             background: var(--gradient-primary);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             padding: 1rem 0;
-            transition: all 0.3s ease;
         }
-
         .navbar-brand {
             font-weight: 700;
             font-size: 1.5rem;
@@ -59,12 +46,6 @@
             display: flex;
             align-items: center;
         }
-
-        .navbar-brand:hover {
-            transform: scale(1.05);
-            transition: transform 0.3s ease;
-        }
-
         .navbar-nav .nav-link {
             font-weight: 500;
             color: rgba(255, 255, 255, 0.85) !important;
@@ -73,183 +54,125 @@
             border-radius: 50px;
             transition: all 0.3s ease;
         }
-
         .navbar-nav .nav-link:hover,
         .navbar-nav .nav-link.active {
             background-color: rgba(255, 255, 255, 0.2);
             color: white !important;
         }
 
-        /* Message Inbox Section */
-        .inbox-section {
-            padding: 5rem 0;
-            position: relative;
-            overflow: hidden;
-            min-height: calc(100vh - 76px);
-        }
-
-        .inbox-container {
-            max-width: 900px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 2;
-        }
-
-        .page-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 2rem;
-            text-align: center;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            position: relative;
-        }
-
-        .page-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 4px;
-            background: var(--gradient-secondary);
-            border-radius: 2px;
-        }
-
-        /* Message Cards */
-        .message-card {
+        /* Main Chat List Container */
+        .chat-list-container {
+            max-width: 800px;
+            margin: 2rem auto;
             background-color: white;
             border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            border-right: 5px solid var(--persian-turquoise);
-            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             overflow: hidden;
         }
 
-        .message-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        .chat-list-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center;
         }
-
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .sender-info {
-            display: flex;
-            align-items: center;
-        }
-
-        .sender-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-left: 1rem;
-            font-size: 1.2rem;
-            font-weight: 700;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            object-fit: cover;
-        }
-
-        .sender-details h5 {
-            margin: 0;
-            font-size: 1.1rem;
+        .chat-list-header h2 {
+            font-size: 1.5rem;
             font-weight: 700;
             color: var(--persian-blue);
+            margin: 0;
         }
 
-        .message-time {
-            font-size: 0.85rem;
+        /* Conversation List */
+        .conversation-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Individual Conversation Item */
+        .conversation-card {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.2s ease;
+            position: relative;
+        }
+        .conversation-card:hover {
+            background-color: #f8fafc;
+        }
+        .conversation-card:last-child {
+            border-bottom: none;
+        }
+
+        .conversation-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            margin-left: 1rem;
+            object-fit: cover;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .conversation-details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0; /* Helps with text truncation */
+        }
+
+        .conversation-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .last-message {
+            font-size: 0.95rem;
             color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conversation-meta {
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            align-items: flex-start;
+            font-size: 0.8rem;
+            color: #94a3b8;
         }
-
-        .message-time i {
-            margin-left: 0.3rem;
-            font-size: 0.9rem;
+        .last-message-time {
+            margin-bottom: 0.25rem;
         }
-
-        .message-content {
-            margin: 1rem 0;
-            padding: 1rem;
-            background-color: rgba(6, 182, 212, 0.05);
-            border-radius: 12px;
-            line-height: 1.6;
-            font-size: 1rem;
-        }
-
-        .message-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-        }
-
-        .btn-delete {
-            background-color: var(--persian-red);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-
-        .btn-delete:hover {
-            background-color: #b91c1c;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
-            color: white;
-        }
-
-        .btn-delete i {
-            margin-left: 0.5rem;
+        
+        /* ✨ Placeholder for unread indicator */
+        .unread-indicator {
+            width: 10px;
+            height: 10px;
+            background-color: var(--persian-turquoise);
+            border-radius: 50%;
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
         }
 
         /* Empty State */
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
-            background-color: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-
-        .empty-icon {
-            font-size: 4rem;
-            color: var(--persian-turquoise);
-            margin-bottom: 1.5rem;
-        }
-
-        .empty-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--persian-blue);
-            margin-bottom: 1rem;
-        }
-
-        .empty-description {
-            font-size: 1.1rem;
-            color: #64748b;
-            margin-bottom: 2rem;
-        }
-
-        /* Back Button */
-        .btn-back {
+        .empty-icon { font-size: 4rem; color: var(--persian-turquoise); margin-bottom: 1.5rem; }
+        .empty-title { font-size: 1.5rem; font-weight: 700; color: var(--persian-blue); margin-bottom: 1rem; }
+        .empty-description { font-size: 1.1rem; color: #64748b; margin-bottom: 2rem; }
+        .btn-primary-custom {
             display: inline-flex;
             align-items: center;
-            background: var(--gradient-secondary);
+            background: var(--gradient-primary);
             color: white;
             border: none;
             padding: 0.75rem 2rem;
@@ -258,68 +181,28 @@
             border-radius: 50px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
-            margin-top: 2rem;
+            text-decoration: none;
         }
-
-        .btn-back:hover {
+        .btn-primary-custom:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             color: white;
         }
-
-        .btn-back i {
+        .btn-primary-custom i {
             margin-left: 0.5rem;
-        }
-
-        /* Decorative Elements */
-        .decorative-circle {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.1;
-            z-index: -1;
-        }
-
-        .circle-1 {
-            width: 300px;
-            height: 300px;
-            background-color: var(--persian-turquoise);
-            top: -150px;
-            left: -150px;
-        }
-
-        .circle-2 {
-            width: 200px;
-            height: 200px;
-            background-color: var(--persian-saffron);
-            bottom: -100px;
-            right: -100px;
         }
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            .page-title {
-                font-size: 2rem;
-            }
-            
-            .message-card {
-                padding: 1rem;
-            }
-            
-            .sender-avatar {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
-            }
-            
-            .navbar-brand {
-                font-size: 1.25rem;
-            }
+            .chat-list-container { margin: 1rem; border-radius: 0; }
+            .conversation-card { padding: 0.75rem 1rem; }
+            .conversation-avatar { width: 48px; height: 48px; }
+            .conversation-name { font-size: 1rem; }
+            .last-message { font-size: 0.9rem; }
         }
     </style>
 </head>
 <body>
-    <div class="bg-pattern"></div>
-    
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
@@ -327,110 +210,59 @@
                 <i class="bi bi-mortarboard-fill ms-2"></i>
                 همکلاسی یاب
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            <i class="bi bi-house-fill ms-1"></i>
-                            خانه
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/register">
-                            <i class="bi bi-person-plus-fill ms-1"></i>
-                            ثبت اطلاعات
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/match">
-                            <i class="bi bi-search ms-1"></i>
-                            جست‌وجو
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/about">
-                            <i class="bi bi-info-circle-fill ms-1"></i>
-                            درباره برنامه
-                        </a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-house-fill ms-1"></i> خانه</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/match"><i class="bi bi-search ms-1"></i> جست‌وجو</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/inbox/{{ current_user_id }}"><i class="bi bi-chat-dots ms-1"></i> گفتگوها</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/profile"><i class="bi bi-person-circle ms-1"></i> پروفایل من</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about"><i class="bi bi-info-circle-fill ms-1"></i> درباره برنامه</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- Message Inbox Section -->
-    <section class="inbox-section">
-        <div class="decorative-circle circle-1"></div>
-        <div class="decorative-circle circle-2"></div>
-        <div class="container">
-            <div class="inbox-container">
-                <h2 class="page-title">
-                    <i class="bi bi-envelope"></i>
-                    صندوق پیام‌های شما
-                </h2>
-
-                {% if messages %}
-                    <div class="message-list">
-                        {% for msg, sender_name in messages %}
-                        <div class="message-card">
-                            <div class="message-header">
-                                <div class="sender-info">
-                                    <!-- ✨ Improved Avatar with sender's name -->
-                                    <img src="https://ui-avatars.com/api/?name={{ sender_name|urlencode }}&background=06b6d4&color=fff&size=64" alt="{{ sender_name }}" class="sender-avatar">
-                                    <div class="sender-details">
-                                        <!-- ✨ Displaying sender's name instead of ID -->
-                                        <h5>{{ sender_name }}</h5>
-                                        <div class="message-time">
-                                            <i class="bi bi-clock"></i>
-                                            {{ msg.timestamp.strftime('%H:%M - %Y/%m/%d') }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="message-content">
-                                {{ msg.content }}
-                            </div>
-                            <div class="message-actions">
-                                <form method="POST" action="{{ url_for('delete_message', message_id=msg.id, user_id=user_id) }}">
-                                    <button type="submit" class="btn-delete">
-                                        <i class="bi bi-trash"></i>
-                                        حذف پیام
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="bi bi-inbox"></i>
-                        </div>
-                        <h3 class="empty-title">صندوق پیام خالی است</h3>
-                        <p class="empty-description">
-                            در حال حاضر پیامی برای شما وجود ندارد. برای دریافت پیام، با همکلاسی‌های خود ارتباط برقرار کنید.
-                        </p>
-                        <a href="{{ url_for('match') }}" class="btn btn-back">
-                            <i class="bi bi-people"></i>
-                            بازگشت به لیست هم‌کلاسی‌ها
-                        </a>
-                    </div>
-                {% endif %}
-
-                {% if messages %}
-                <div class="text-center">
-                    <a href="{{ url_for('match') }}" class="btn btn-back">
-                        <i class="bi bi-people"></i>
-                        بازگشت به لیست هم‌کلاسی‌ها
-                    </a>
-                </div>
-                {% endif %}
-            </div>
+    <!-- Main Content -->
+    <main class="chat-list-container">
+        <div class="chat-list-header">
+            <h2><i class="bi bi-chat-dots"></i> گفتگوهای شما</h2>
         </div>
-    </section>
+
+        {% if conversations %}
+            <ul class="conversation-list">
+                {% for conv in conversations %}
+                <a href="{{ url_for('chat', other_user_id=conv.other_user_id) }}" class="conversation-card">
+                    <img src="https://ui-avatars.com/api/?name={{ conv.other_user_name|urlencode }}&background=06b6d4&color=fff&size=128" alt="{{ conv.other_user_name }}" class="conversation-avatar">
+                    <div class="conversation-details">
+                        <div class="conversation-name">{{ conv.other_user_name }}</div>
+                        <div class="last-message">{{ conv.last_message_content }}</div>
+                    </div>
+                    <div class="conversation-meta">
+                        <div class="last-message-time">
+                            <i class="bi bi-clock"></i>
+                            {{ conv.last_message_timestamp.strftime('%H:%M') }}
+                        </div>
+                        <!-- ✨ Placeholder for unread indicator -->
+                        <!-- <div class="unread-indicator"></div> -->
+                    </div>
+                </a>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon"><i class="bi bi-chat-left-dots"></i></div>
+                <h3 class="empty-title">هنوز گفتگویی نداشته‌اید</h3>
+                <p class="empty-description">برای شروع، به صفحه جستجو بروید و برای همکلاسی‌های خود پیام ارسال کنید.</p>
+                <a href="{{ url_for('match') }}" class="btn-primary-custom">
+                    <i class="bi bi-people ms-2"></i> پیدا کردن همکلاسی
+                </a>
+            </div>
+        {% endif %}
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+</html>
