@@ -5,24 +5,22 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
 from sqlalchemy import or_, and_, case
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField # SelectField را اضافه کنید
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 
-
+# --- پیکربندی ---
 app = Flask(__name__)
-
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-
 database_url = os.getenv("DATABASE_URL")
 if not database_url:
     raise RuntimeError("DATABASE_URL environment variable is not set!")
-
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+# --- دکوراتور احراز هویت ---
 def login_required(f):
     from functools import wraps
     @wraps(f)
@@ -32,6 +30,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# --- مدل‌های دیتابیس ---
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
@@ -46,10 +45,25 @@ class Message(db.Model):
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
 
+# --- کلاس‌های فرم Flask-WTF ---
+
+# لیست گزینه‌ها برای جلوگیری از تکرار کد
+MAJOR_CHOICES = [
+    ('', 'رشته خود را انتخاب کنید'),
+    ('مهندسی کامپیوتر', 'مهندسی کامپیوتر'),
+    ('علوم کامپیوتر', 'علوم کامپیوتر'),
+]
+
+GRADE_CHOICES = [
+    ('', 'مقطع خود را انتخاب کنید'),
+    ('کارشناسی', 'کارشناسی'),
+    ('کارشناسی ارشد', 'کارشناسی ارشد')
+]
+
 class RegistrationForm(FlaskForm):
     name = StringField('نام کاربری', validators=[DataRequired(), Length(min=4, max=100)])
-    major = StringField('رشته تحصیلی')
-    grade = StringField('مقطع تحصیلی')
+    major = SelectField('رشته تحصیلی', choices=MAJOR_CHOICES, validators=[DataRequired()])
+    grade = SelectField('مقطع تحصیلی', choices=GRADE_CHOICES, validators=[DataRequired()])
     password = PasswordField('رمز عبور', validators=[DataRequired(), Length(min=6)])
     confirm_password = PasswordField('تکرار رمز عبور', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('ثبت‌نام')
@@ -65,8 +79,8 @@ class LoginForm(FlaskForm):
 
 class UpdateProfileForm(FlaskForm):
     name = StringField('نام کاربری', validators=[DataRequired(), Length(min=4, max=100)])
-    major = StringField('رشته تحصیلی')
-    grade = StringField('مقطع تحصیلی')
+    major = SelectField('رشته تحصیلی', choices=MAJOR_CHOICES)
+    grade = SelectField('مقطع تحصیلی', choices=GRADE_CHOICES)
     submit = SubmitField('بروزرسانی پروفایل')
 
     def __init__(self, original_username, *args, **kwargs):
