@@ -7,6 +7,8 @@ from sqlalchemy import or_, and_, case
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
+from flask_socketio import SocketIO, emit, join_room, leave_room
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
@@ -18,6 +20,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 def login_required(f):
     from functools import wraps
@@ -41,7 +44,7 @@ class Message(db.Model):
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
-
+    read_at = db.Column(db.DateTime, nullable=True)
 
 MAJOR_CHOICES = [
     ('', 'رشته خود را انتخاب کنید'),
@@ -96,10 +99,6 @@ class UpdatePasswordForm(FlaskForm):
 class DeleteAccountForm(FlaskForm):
     submit = SubmitField('حذف حساب کاربری')
 
-class SendMessageForm(FlaskForm):
-    content = TextAreaField('پیام', validators=[DataRequired()])
-    submit = SubmitField('ارسال')
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -125,7 +124,7 @@ def register():
         flash('ثبت‌نام با موفقیت انجام شد. به همکلاسی یاب خوش آمدید!', 'success')
         session['current_user_id'] = new_user.id
         return redirect(url_for('match'))
-
+        
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -214,25 +213,23 @@ def delete_account():
 def chat(other_user_id):
     current_user_id = session.get('current_user_id')
     other_user = User.query.get_or_404(other_user_id)
+
+    unread_messages = Message.query.filter(
+        and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id, Message.read_at.is_(None))
+    ).all()
+    for msg in unread_messages:
+        msg.read_at = db.func.now()
+    db.session.commit()
+
     messages = Message.query.filter(
         or_(
             and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id),
             and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id)
         )
     ).order_by(Message.timestamp.asc()).all()
-    form = SendMessageForm()
-    return render_template('chat.html', other_user=other_user, messages=messages, form=form)
-
-@app.route('/send_chat_message/<int:other_user_id>', methods=['POST'])
-@login_required
-def send_chat_message(other_user_id):
-    form = SendMessageForm()
-    if form.validate_on_submit():
-        current_user_id = session.get('current_user_id')
-        msg = Message(sender_id=current_user_id, receiver_id=other_user_id, content=form.content.data)
-        db.session.add(msg)
-        db.session.commit()
-    return redirect(url_for('chat', other_user_id=other_user_id))
+    
+    # فرم ارسال پیام دیگر لازم نیست
+    return render_template('chat.html', other_user=other_user, messages=messages)
 
 @app.route('/inbox/<int:user_id>')
 @login_required
@@ -254,6 +251,49 @@ def inbox(user_id):
     formatted_conversations.sort(key=lambda x: x['last_message_timestamp'], reverse=True)
     return render_template('inbox.html', conversations=formatted_conversations)
 
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+
+@socketio.on('join_chat')
+def handle_join_chat(data):
+    current_user_id = session.get('current_user_id')
+    if not current_user_id:
+        return  
+
+    other_user_id = data['other_user_id']
+    room_id = f"chat-{min(current_user_id, other_user_id)}-{max(current_user_id, other_user_id)}"
+    join_room(room_id)
+    
+    user = User.query.get(current_user_id)
+    emit('status_message', {'msg': f"{user.name} به گفتگو پیوست.", 'type': 'join'}, room=room_id, include_self=False)
+
+@socketio.on('send_message')
+def handle_send_message(data):
+    current_user_id = session.get('current_user_id')
+    if not current_user_id:
+        return
+
+    other_user_id = data['other_user_id']
+    content = data['content']
+    room_id = f"chat-{min(current_user_id, other_user_id)}-{max(current_user_id, other_user_id)}"
+
+    msg = Message(sender_id=current_user_id, receiver_id=other_user_id, content=content)
+    db.session.add(msg)
+    db.session.commit()
+    
+    user = User.query.get(current_user_id)
+    emit('new_message', {
+        'sender_name': user.name,
+        'content': content,
+        'timestamp': msg.timestamp.strftime('%H:%M'),
+        'sender_id': current_user_id
+    }, room=room_id)
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    socketio.run(app, host='0.0.0.0', port=port)
