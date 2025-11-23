@@ -7,17 +7,15 @@ from sqlalchemy import or_, and_, case
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
-from dotenv import load_dotenv
 
-load_dotenv()
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_default_secret_key_for_development')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
-database_url = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
-if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
+database_url = os.getenv("DATABASE_URL")
+if not database_url:
+    raise RuntimeError("DATABASE_URL environment variable is not set!")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
