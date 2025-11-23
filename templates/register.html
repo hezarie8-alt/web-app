@@ -9,13 +9,11 @@
         --secondary-color: #34A853;
         --secondary-dark: #2E7D32;
         --error-color: #EA4335;
-        --warning-color: #FBBC05;
         --text-dark: #202124;
         --text-light: #5F6368;
         --border-color: #DADCE0;
         --light-bg: #F8F9FA;
         --white: #FFFFFF;
-        --shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
         --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
         --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
         --radius: 8px;
@@ -28,7 +26,7 @@
         font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background-color: var(--light-bg);
         color: var(--text-dark);
-        line-height: 1.6;
+        line-height: 1.5;
         direction: rtl;
     }
 
@@ -56,13 +54,12 @@
         z-index: -1;
     }
 
-    /* Enhanced auth card */
+    /* Enhanced auth card - compact */
     .auth-card {
         background-color: var(--white);
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-lg);
-        padding: 2.5rem;
-        margin-bottom: 2rem;
+        padding: 2rem;
         width: 100%;
         max-width: 450px;
         position: relative;
@@ -77,31 +74,31 @@
         top: 0;
         right: 0;
         width: 100%;
-        height: 5px;
+        height: 4px;
         background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
     }
 
     /* Hover effect for depth */
     .auth-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-3px);
         box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
     }
 
     /* Improved tabs */
     .auth-tabs {
         display: flex;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
         border-bottom: 1px solid var(--border-color);
         position: relative;
     }
 
     .auth-tab {
         flex: 1;
-        padding: 1rem;
+        padding: 0.75rem;
         text-align: center;
         background: none;
         border: none;
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 500;
         color: var(--text-light);
         cursor: pointer;
@@ -131,10 +128,10 @@
 
     /* Title styling */
     .auth-title {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         font-weight: 700;
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
         color: var(--primary-color);
         display: flex;
         align-items: center;
@@ -143,7 +140,7 @@
 
     .auth-title i {
         margin-right: 0.5rem;
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
 
     /* Enhanced form controls */
@@ -155,6 +152,7 @@
         background-color: var(--white);
         font-family: 'Vazirmatn', sans-serif;
         width: 100%;
+        font-size: 0.95rem;
     }
 
     .form-control:focus, .form-select:focus {
@@ -186,7 +184,7 @@
     /* Enhanced buttons */
     .btn-auth {
         padding: 0.75rem;
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 600;
         border-radius: 50px;
         transition: var(--transition);
@@ -234,6 +232,7 @@
         color: var(--text-light);
         cursor: pointer;
         transition: var(--transition);
+        font-size: 0.9rem;
     }
 
     .password-icon:hover {
@@ -251,18 +250,12 @@
         margin-bottom: 0.5rem;
         display: flex;
         align-items: center;
+        font-size: 0.95rem;
     }
 
     .form-label .required {
         color: var(--error-color);
         margin-right: 0.25rem;
-    }
-
-    .form-label .hint {
-        font-weight: 400;
-        font-size: 0.875rem;
-        color: var(--text-light);
-        margin-right: auto;
     }
 
     /* Form checkbox styling */
@@ -274,8 +267,9 @@
     /* Link styling */
     .already-registered {
         text-align: center;
-        margin-top: 1.5rem;
+        margin-top: 1rem;
         color: var(--text-light);
+        font-size: 0.9rem;
     }
 
     .already-registered a {
@@ -290,142 +284,20 @@
         text-decoration: underline;
     }
 
-    /* Social login section */
-    .social-login {
-        margin-top: 2rem;
-        text-align: center;
-    }
-
-    .social-login-divider {
-        display: flex;
-        align-items: center;
-        margin: 1.5rem 0;
-    }
-
-    .social-login-divider::before,
-    .social-login-divider::after {
-        content: "";
-        flex: 1;
-        height: 1px;
-        background-color: var(--border-color);
-    }
-
-    .social-login-divider span {
-        padding: 0 1rem;
-        color: var(--text-light);
-        font-size: 0.875rem;
-    }
-
-    .social-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-    }
-
-    .social-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background-color: var(--white);
-        border: 1px solid var(--border-color);
-        transition: var(--transition);
-        color: var(--text-dark);
-    }
-
-    .social-button:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .social-button.google:hover {
-        background-color: #EA4335;
-        color: var(--white);
-        border-color: #EA4335;
-    }
-
-    .social-button.facebook:hover {
-        background-color: #1877F2;
-        color: var(--white);
-        border-color: #1877F2;
-    }
-
-    /* Password strength indicator */
-    .password-strength {
-        margin-top: 0.5rem;
-        height: 5px;
-        background-color: var(--border-color);
-        border-radius: 5px;
-        overflow: hidden;
-    }
-
-    .password-strength-meter {
-        height: 100%;
-        width: 0;
-        transition: width 0.3s ease;
-    }
-
-    .password-strength-meter.weak {
-        width: 33%;
-        background-color: var(--error-color);
-    }
-
-    .password-strength-meter.medium {
-        width: 66%;
-        background-color: var(--warning-color);
-    }
-
-    .password-strength-meter.strong {
-        width: 100%;
-        background-color: var(--secondary-color);
-    }
-
-    /* Password requirements list */
-    .password-requirements {
-        margin-top: 0.5rem;
-        font-size: 0.75rem;
-        color: var(--text-light);
-    }
-
-    .password-requirements ul {
-        padding-right: 1.5rem;
-        margin-top: 0.25rem;
-    }
-
-    .password-requirements li {
-        margin-bottom: 0.25rem;
-    }
-
-    .password-requirements li.valid {
-        color: var(--secondary-color);
-    }
-
-    .password-requirements li.invalid {
-        color: var(--text-light);
-    }
-
     /* Form feedback styling */
-    .form-feedback {
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-    }
-
-    .valid-feedback {
-        color: var(--secondary-color);
-    }
-
     .invalid-feedback {
         color: var(--error-color);
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
     }
 
     /* Custom alert styling */
     .alert-custom {
-        padding: 0.75rem 1rem;
-        margin-bottom: 1rem;
+        padding: 0.6rem 1rem;
+        margin-bottom: 0.75rem;
         border: 1px solid transparent;
         border-radius: var(--radius);
+        font-size: 0.9rem;
     }
 
     .alert-custom-success {
@@ -469,19 +341,7 @@
         }
         
         .auth-title {
-            font-size: 1.5rem;
-        }
-        
-        .social-buttons {
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .social-button {
-            width: 100%;
-            max-width: 250px;
-            height: 40px;
-            border-radius: var(--radius);
+            font-size: 1.3rem;
         }
     }
 </style>
@@ -508,7 +368,7 @@
                 <div id="registerForm" class="auth-form">
                     <h2 class="auth-title">
                         <i class="bi bi-person-plus-fill"></i>
-                        ایجاد حساب کاربری جدید
+                        ایجاد حساب کاربری
                     </h2>
                     
                     <!-- Flash Messages for Registration -->
@@ -528,57 +388,45 @@
                         <div class="mb-3">
                             {{ form.name.label(class="form-label") }}
                             <span class="required">*</span>
-                            <span class="hint">نام کامل خود را وارد کنید</span>
-                            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="نام و نام خانوادگی") }}
+                            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="نام کامل") }}
                             {% for error in form.name.errors %}
                                 <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
+                        
                         <div class="mb-3">
                             {{ form.major.label(class="form-label") }}
                             <span class="required">*</span>
-                            <span class="hint">رشته تحصیلی خود را انتخاب کنید</span>
                             {{ form.major(class="form-select" + (" is-invalid" if form.major.errors else "")) }}
                             {% for error in form.major.errors %}
                                 <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
+                        
                         <div class="mb-3">
                             {{ form.grade.label(class="form-label") }}
                             <span class="required">*</span>
-                            <span class="hint">مقطع تحصیلی خود را انتخاب کنید</span>
                             {{ form.grade(class="form-select" + (" is-invalid" if form.grade.errors else "")) }}
                             {% for error in form.grade.errors %}
                                 <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
+                        
                         <div class="mb-3">
                             {{ form.password.label(class="form-label") }}
                             <span class="required">*</span>
-                            <span class="hint">حداقل ۸ کاراکتر</span>
                             <div class="password-container">
                                 {{ form.password(class="form-control password-input", id="password") }}
                                 <i class="bi bi-eye-slash password-icon" id="passwordToggle"></i>
-                            </div>
-                            <div class="password-strength">
-                                <div class="password-strength-meter" id="passwordStrengthMeter"></div>
-                            </div>
-                            <div class="password-requirements" id="passwordRequirements">
-                                <ul>
-                                    <li id="length" class="invalid">حداقل ۸ کاراکتر</li>
-                                    <li id="uppercase" class="invalid">شامل حداقل یک حرف بزرگ</li>
-                                    <li id="lowercase" class="invalid">شامل حداقل یک حرف کوچک</li>
-                                    <li id="number" class="invalid">شامل حداقل یک عدد</li>
-                                </ul>
                             </div>
                             {% for error in form.password.errors %}
                                 <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
+                        
                         <div class="mb-4">
                             {{ form.confirm_password.label(class="form-label") }}
                             <span class="required">*</span>
-                            <span class="hint">رمز عبور را دوباره وارد کنید</span>
                             <div class="password-container">
                                 {{ form.confirm_password(class="form-control password-input", id="confirm_password") }}
                                 <i class="bi bi-eye-slash password-icon" id="confirmPasswordToggle"></i>
@@ -587,11 +435,8 @@
                                 <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
-                        <div class="mb-3 form-check">
-                            {{ form.remember_me(class="form-check-input") }}
-                            {{ form.remember_me.label(class="form-check-label") }}
-                        </div>
-                        <div class="d-grid">
+                        
+                        <div class="d-grid mb-3">
                             {{ form.submit(class="btn btn-primary btn-auth") }}
                         </div>
                         
@@ -600,21 +445,6 @@
                             <a href="#" onclick="switchTab('login'); return false;">وارد شوید</a>
                         </div>
                     </form>
-                    
-                    <!-- Social Login Options -->
-                    <div class="social-login">
-                        <div class="social-login-divider">
-                            <span>یا ثبت‌نام با</span>
-                        </div>
-                        <div class="social-buttons">
-                            <button class="social-button google" title="ثبت‌نام با گوگل">
-                                <i class="bi bi-google"></i>
-                            </button>
-                            <button class="social-button facebook" title="ثبت‌نام با فیسبوک">
-                                <i class="bi bi-facebook"></i>
-                            </button>
-                        </div>
-                    </div>
                 </div>
                 
                 <!-- Login Form -->
@@ -641,16 +471,15 @@
                         <div class="mb-3">
                             {{ login_form.username.label(class="form-label") }}
                             <span class="required">*</span>
-                            <span class="hint">ایمیل یا نام کاربری خود را وارد کنید</span>
                             {{ login_form.username(class="form-control" + (" is-invalid" if login_form.username.errors else ""), placeholder="نام کاربری یا ایمیل") }}
                             {% for error in login_form.username.errors %}
                                 <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
+                        
                         <div class="mb-3">
                             {{ login_form.password.label(class="form-label") }}
                             <span class="required">*</span>
-                            <span class="hint">رمز عبور خود را وارد کنید</span>
                             <div class="password-container">
                                 {{ login_form.password(class="form-control password-input", id="login_password") }}
                                 <i class="bi bi-eye-slash password-icon" id="loginPasswordToggle"></i>
@@ -659,14 +488,15 @@
                                 <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
-                        <div class="mb-4 d-flex justify-content-between align-items-center">
+                        
+                        <div class="mb-3">
                             <div class="form-check">
                                 {{ login_form.remember_me(class="form-check-input") }}
                                 {{ login_form.remember_me.label(class="form-check-label") }}
                             </div>
-                            <a href="#" class="text-decoration-none">فراموشی رمز عبور؟</a>
                         </div>
-                        <div class="d-grid">
+                        
+                        <div class="d-grid mb-3">
                             {{ login_form.submit(class="btn btn-secondary btn-auth") }}
                         </div>
                         
@@ -675,21 +505,6 @@
                             <a href="#" onclick="switchTab('register'); return false;">ثبت‌نام کنید</a>
                         </div>
                     </form>
-                    
-                    <!-- Social Login Options -->
-                    <div class="social-login">
-                        <div class="social-login-divider">
-                            <span>یا ورود با</span>
-                        </div>
-                        <div class="social-buttons">
-                            <button class="social-button google" title="ورود با گوگل">
-                                <i class="bi bi-google"></i>
-                            </button>
-                            <button class="social-button facebook" title="ورود با فیسبوک">
-                                <i class="bi bi-facebook"></i>
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -731,47 +546,6 @@ function setupPasswordToggle(toggleId, inputId) {
     }
 }
 
-// Password strength checker
-function checkPasswordStrength(password) {
-    let strength = 0;
-    const requirements = {
-        length: password.length >= 8,
-        uppercase: /[A-Z]/.test(password),
-        lowercase: /[a-z]/.test(password),
-        number: /[0-9]/.test(password)
-    };
-    
-    // Update UI for each requirement
-    for (const [key, valid] of Object.entries(requirements)) {
-        const element = document.getElementById(key);
-        if (element) {
-            if (valid) {
-                element.classList.remove('invalid');
-                element.classList.add('valid');
-                strength++;
-            } else {
-                element.classList.remove('valid');
-                element.classList.add('invalid');
-            }
-        }
-    }
-    
-    // Update strength meter
-    const meter = document.getElementById('passwordStrengthMeter');
-    if (meter) {
-        meter.className = 'password-strength-meter';
-        if (strength <= 1) {
-            meter.classList.add('weak');
-        } else if (strength <= 3) {
-            meter.classList.add('medium');
-        } else {
-            meter.classList.add('strong');
-        }
-    }
-    
-    return strength;
-}
-
 // Form validation
 function validateForm(form) {
     let isValid = true;
@@ -810,14 +584,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupPasswordToggle('passwordToggle', 'password');
     setupPasswordToggle('confirmPasswordToggle', 'confirm_password');
     setupPasswordToggle('loginPasswordToggle', 'login_password');
-    
-    // Password strength checker
-    const passwordInput = document.getElementById('password');
-    if (passwordInput) {
-        passwordInput.addEventListener('input', function() {
-            checkPasswordStrength(this.value);
-        });
-    }
     
     // Form validation and submission
     const registrationForm = document.getElementById('registrationForm');
