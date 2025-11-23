@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: hamkelasi-yab # نام سرویس خود را اینجا قرار دهید
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python app.py"
+    # این بخش اضافه می‌شود
+    preBuildCommand: "python -m flask db upgrade"
