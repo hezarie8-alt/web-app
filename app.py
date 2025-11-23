@@ -3,26 +3,34 @@ from flask import Flask, render_template, request, redirect, url_for, session, a
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
-from sqlalchemy import or_, and_, case, func
+from sqlalchemy import or_, and_, func
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, BooleanField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
+# --- تنظیمات اولیه برنامه ---
 app = Flask(__name__)
+# از یک کلید مخفی امن در محیط پروداکشن استفاده کنید
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_default_secret_key_for_development')
+
+# تنظیمات دیتابیس
 database_url = os.getenv("DATABASE_URL")
 if not database_url:
+    # اگر DATABASE_URL تنظیم نشده باشد، از دیتابیس محلی SQLite استفاده می‌کند
     basedir = os.path.abspath(os.path.dirname(__file__))
     database_url = 'sqlite:///' + os.path.join(basedir, 'app.db')
     print(f"WARNING: DATABASE_URL not set. Using local SQLite database: {database_url}")
+
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# مقداردهی اولیه اکستنشن‌ها
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+# --- دکوراتور و توابع کمکی ---
 def login_required(f):
     from functools import wraps
     @wraps(f)
@@ -33,6 +41,16 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# --- Context Processor برای دسترسی به کاربر فعلی در تمام قالب‌ها ---
+@app.context_processor
+def inject_user():
+    """این تابع متغیر 'current_user' را در تمام قالب‌های جینجا در دسترس قرار می‌دهد."""
+    if 'current_user_id' in session and session['current_user_id']:
+        current_user = User.query.get(session['current_user_id'])
+        return dict(current_user=current_user)
+    return dict(current_user=None)
+
+# --- مدل‌های دیتابیس ---
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
@@ -48,6 +66,7 @@ class Message(db.Model):
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
     read_at = db.Column(db.DateTime, nullable=True)
 
+# --- فرم‌های WTForms ---
 MAJOR_CHOICES = [('', 'رشته خود را انتخاب کنید'), ('مهندسی کامپیوتر', 'مهندسی کامپیوتر'), ('علوم کامپیوتر', 'علوم کامپیوتر')]
 GRADE_CHOICES = [('', 'مقطع خود را انتخاب کنید'), ('کارشناسی', 'کارشناسی'), ('کارشناسی ارشد', 'کارشناسی ارشد')]
 
@@ -90,6 +109,7 @@ class UpdatePasswordForm(FlaskForm):
 class DeleteAccountForm(FlaskForm):
     submit = SubmitField('حذف حساب کاربری')
 
+# --- مسیرهای (Routes) برنامه ---
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -226,6 +246,7 @@ def inbox(user_id):
     if current_user_id != user_id:
         abort(403)
 
+    # یافتن تمام کاربرانی که با آن‌ها گفتگو داشته‌ایم
     sent_to_users = db.session.query(Message.receiver_id).filter(Message.sender_id == current_user_id).distinct()
     received_from_users = db.session.query(Message.sender_id).filter(Message.receiver_id == current_user_id).distinct()
     other_users_ids = sent_to_users.union(received_from_users).all()
@@ -233,14 +254,8 @@ def inbox(user_id):
 
     conversations = []
     for other_user_id in other_users_ids:
-
-        last_message = Message.query.filter(
-            or_(
-                and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id),
-                and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id)
-            )
-        ).order_by(Message.timestamp.desc()).first()
-
+        # یافتن آخرین پیام در این گفتگو
+        last_message = Message.query.filter(or_(and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id), and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id))).order_by(Message.timestamp.desc()).first()
         if last_message:
             other_user = User.query.get(other_user_id)
             unread_count = Message.query.filter(and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id, Message.read_at.is_(None))).count()
@@ -255,6 +270,7 @@ def inbox(user_id):
     conversations.sort(key=lambda x: x['last_message_timestamp'], reverse=True)
     return render_template('inbox.html', conversations=conversations, user_id=user_id)
 
+# --- هندلرهای Socket.IO برای چت آنی ---
 @socketio.on('connect')
 def handle_connect():
     print('Client connected')
@@ -276,11 +292,11 @@ def handle_join_chat(data):
 @socketio.on('send_message')
 def handle_send_message(data):
     current_user_id = session.get('current_user_id')
-    if not current_user_id: return
+    if not current_user_id: return # جلوگیری از کرش اگر سشن از بین رفته باشد
 
     other_user_id = data.get('other_user_id')
     content = data.get('content')
-    if not other_user_id or not content: return
+    if not other_user_id or not content: return # جلوگیری از کرش اگر داده نامعتبر بود
 
     room_id = f"chat-{min(current_user_id, other_user_id)}-{max(current_user_id, other_user_id)}"
     msg = Message(sender_id=current_user_id, receiver_id=other_user_id, content=content)
@@ -306,6 +322,7 @@ def handle_mark_as_read(data):
         room_id = f"chat-{min(message.sender_id, message.receiver_id)}-{max(message.sender_id, message.receiver_id)}"
         emit('message_read', {'message_id': message.id}, room=room_id)
 
+# --- اجرای برنامه ---
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

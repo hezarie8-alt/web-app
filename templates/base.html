@@ -75,7 +75,6 @@
 
                 <!-- منوی کشویی پروفایل فقط برای کاربران وارد شده -->
                 {% if session.get('current_user_id') %}
-                {% set current_user = User.query.get(session['current_user_id']) %}
                 <div class="dropdown">
                     <a class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <!-- بهبود: اضافه شدن ویژگی title برای دسترسی‌پذیری بهتر -->
