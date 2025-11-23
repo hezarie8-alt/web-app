@@ -1,621 +1,665 @@
-{% extends "base.html" %}
-
-{% block head %}
-<style>
-    /* Variables for consistent theming */
-    :root {
-        --primary-color: #4285F4;
-        --primary-dark: #3367D6;
-        --secondary-color: #34A853;
-        --secondary-dark: #2E7D32;
-        --error-color: #EA4335;
-        --text-dark: #202124;
-        --text-light: #5F6368;
-        --border-color: #DADCE0;
-        --light-bg: #F8F9FA;
-        --white: #FFFFFF;
-        --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-        --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
-        --radius: 8px;
-        --radius-lg: 16px;
-        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* Improved base styles */
-    body {
-        font-family: 'Vazirmatn', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: var(--light-bg);
-        color: var(--text-dark);
-        line-height: 1.5;
-        direction: rtl;
-    }
-
-    /* Enhanced auth container */
-    .auth-container {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-        position: relative;
-        overflow: hidden;
-    }
-
-    /* Background pattern for visual interest */
-    .auth-container::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 100%;
-        height: 100%;
-        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234285F4' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        z-index: -1;
-    }
-
-    /* Enhanced auth card - compact */
-    .auth-card {
-        background-color: var(--white);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-lg);
-        padding: 2rem;
-        width: 100%;
-        max-width: 450px;
-        position: relative;
-        overflow: hidden;
-        transition: var(--transition);
-    }
-
-    /* Accent border for visual appeal */
-    .auth-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 100%;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-    }
-
-    /* Hover effect for depth */
-    .auth-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-    }
-
-    /* Improved tabs */
-    .auth-tabs {
-        display: flex;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid var(--border-color);
-        position: relative;
-    }
-
-    .auth-tab {
-        flex: 1;
-        padding: 0.75rem;
-        text-align: center;
-        background: none;
-        border: none;
-        font-size: 1rem;
-        font-weight: 500;
-        color: var(--text-light);
-        cursor: pointer;
-        transition: var(--transition);
-        position: relative;
-    }
-
-    .auth-tab.active {
-        color: var(--primary-color);
-    }
-
-    /* Active tab indicator */
-    .auth-tab.active::after {
-        content: '';
-        position: absolute;
-        bottom: -1px;
-        right: 0;
-        width: 100%;
-        height: 3px;
-        background-color: var(--primary-color);
-        border-radius: 3px 3px 0 0;
-    }
-
-    .auth-tab:hover {
-        color: var(--primary-color);
-    }
-
-    /* Title styling */
-    .auth-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        text-align: center;
-        margin-bottom: 1.5rem;
-        color: var(--primary-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .auth-title i {
-        margin-right: 0.5rem;
-        font-size: 1.3rem;
-    }
-
-    /* Enhanced form controls */
-    .form-control, .form-select {
-        border-radius: var(--radius);
-        padding: 0.75rem 1rem;
-        border: 1px solid var(--border-color);
-        transition: var(--transition);
-        background-color: var(--white);
-        font-family: 'Vazirmatn', sans-serif;
-        width: 100%;
-        font-size: 0.95rem;
-    }
-
-    .form-control:focus, .form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
-        outline: none;
-        background-color: var(--white);
-    }
-
-    /* Validation states */
-    .form-control.is-valid {
-        border-color: var(--secondary-color);
-        padding-left: calc(1.5em + 0.75rem);
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2334A853' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-position: left calc(0.375em + 0.1875rem) center;
-        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-    }
-
-    .form-control.is-invalid {
-        border-color: var(--error-color);
-        padding-left: calc(1.5em + 0.75rem);
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23EA4335'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23EA4335' stroke='none'/%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-position: left calc(0.375em + 0.1875rem) center;
-        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-    }
-
-    /* Enhanced buttons */
-    .btn-auth {
-        padding: 0.75rem;
-        font-size: 1rem;
-        font-weight: 600;
-        border-radius: 50px;
-        transition: var(--transition);
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .btn-auth:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .btn-primary {
-        background-color: var(--primary-color);
-        color: var(--white);
-    }
-
-    .btn-primary:hover {
-        background-color: var(--primary-dark);
-        color: var(--white);
-    }
-
-    .btn-secondary {
-        background-color: var(--secondary-color);
-        color: var(--white);
-    }
-
-    .btn-secondary:hover {
-        background-color: var(--secondary-dark);
-        color: var(--white);
-    }
-
-    /* Password container with visibility toggle */
-    .password-container {
-        position: relative;
-    }
-
-    .password-icon {
-        position: absolute;
-        right: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-light);
-        cursor: pointer;
-        transition: var(--transition);
-        font-size: 0.9rem;
-    }
-
-    .password-icon:hover {
-        color: var(--primary-color);
-    }
-
-    .password-input {
-        padding-right: 3rem !important;
-    }
-
-    /* Enhanced form labels */
-    .form-label {
-        font-weight: 600;
-        color: var(--text-dark);
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        font-size: 0.95rem;
-    }
-
-    .form-label .required {
-        color: var(--error-color);
-        margin-right: 0.25rem;
-    }
-
-    /* Form checkbox styling */
-    .form-check-input:checked {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-
-    /* Link styling */
-    .already-registered {
-        text-align: center;
-        margin-top: 1rem;
-        color: var(--text-light);
-        font-size: 0.9rem;
-    }
-
-    .already-registered a {
-        color: var(--primary-color);
-        text-decoration: none;
-        font-weight: 600;
-        transition: var(--transition);
-    }
-
-    .already-registered a:hover {
-        color: var(--primary-dark);
-        text-decoration: underline;
-    }
-
-    /* Form feedback styling */
-    .invalid-feedback {
-        color: var(--error-color);
-        font-size: 0.8rem;
-        margin-top: 0.25rem;
-    }
-
-    /* Custom alert styling */
-    .alert-custom {
-        padding: 0.6rem 1rem;
-        margin-bottom: 0.75rem;
-        border: 1px solid transparent;
-        border-radius: var(--radius);
-        font-size: 0.9rem;
-    }
-
-    .alert-custom-success {
-        color: #0F5132;
-        background-color: #D1E7DD;
-        border-color: #BADBCC;
-    }
-
-    .alert-custom-error {
-        color: #842029;
-        background-color: #F8D7DA;
-        border-color: #F5C2C7;
-    }
-
-    .alert-custom-info {
-        color: #055160;
-        background-color: #CFF4FC;
-        border-color: #B6EFFB;
-    }
-
-    /* Animation for form elements */
-    .auth-card > * {
-        animation: fadeIn 0.5s ease-out;
-    }
-
-    .auth-card > *:nth-child(1) { animation-delay: 0.1s; }
-    .auth-card > *:nth-child(2) { animation-delay: 0.2s; }
-    .auth-card > *:nth-child(3) { animation-delay: 0.3s; }
-    .auth-card > *:nth-child(4) { animation-delay: 0.4s; }
-    .auth-card > *:nth-child(5) { animation-delay: 0.5s; }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 576px) {
-        .auth-card {
-            padding: 1.5rem;
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>همکلاسی یاب | ثبت اطلاعات یا ورود</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4285F4;
+            --primary-dark: #3367D6;
+            --secondary-color: #34A853;
+            --secondary-dark: #2E7D32;
+            --error-color: #EA4335;
+            --text-dark: #202124;
+            --text-light: #5F6368;
+            --border-color: #DADCE0;
+            --light-bg: #F8F9FA;
+            --white: #FFFFFF;
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --radius: 8px;
+            --radius-lg: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+            line-height: 1.5;
+            direction: rtl;
+        }
+
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://sfile.chatglm.cn/images-ppt/279a036e91aa.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.05;
+            z-index: -1;
+        }
+
+        .auth-card {
+            background-color: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 2rem;
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .auth-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .auth-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 0.75rem;
+            text-align: center;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .auth-tab.active {
+            color: var(--primary-color);
+        }
+
+        .auth-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            right: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .auth-tab:hover {
+            color: var(--primary-color);
+        }
+
         .auth-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-title i {
+            margin-right: 0.5rem;
             font-size: 1.3rem;
         }
-    }
-</style>
-{% endblock %}
 
-{% block title %}🎓 همکلاسی یاب | ثبت اطلاعات یا ورود{% endblock %}
+        .form-control, .form-select {
+            border-radius: var(--radius);
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+            background-color: var(--white);
+            font-family: 'Vazirmatn', sans-serif;
+            width: 100%;
+            font-size: 0.95rem;
+        }
 
-{% block content %}
-<div class="container auth-container">
-    <div class="row justify-content-center">
-        <div class="col-lg-6">
-            <div class="auth-card">
-                <!-- Tab Navigation -->
-                <div class="auth-tabs">
-                    <button class="auth-tab active" id="registerTab" onclick="switchTab('register')">
-                        <i class="bi bi-person-plus ms-2"></i>ثبت نام
-                    </button>
-                    <button class="auth-tab" id="loginTab" onclick="switchTab('login')">
-                        <i class="bi bi-box-arrow-in-right ms-2"></i>ورود
-                    </button>
-                </div>
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+            outline: none;
+            background-color: var(--white);
+        }
+
+        .form-control.is-valid {
+            border-color: var(--secondary-color);
+            padding-left: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2334A853' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: left calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+
+        .form-control.is-invalid {
+            border-color: var(--error-color);
+            padding-left: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23EA4335'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23EA4335' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: left calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+
+        .btn-auth {
+            padding: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: var(--transition);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            color: var(--white);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: var(--white);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+            color: var(--white);
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .password-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .password-icon:hover {
+            color: var(--primary-color);
+        }
+
+        .password-input {
+            padding-right: 3rem !important;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+
+        .form-label .required {
+            color: var(--error-color);
+            margin-right: 0.25rem;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .already-registered {
+            text-align: center;
+            margin-top: 1rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .already-registered a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .already-registered a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .invalid-feedback {
+            color: var(--error-color);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .alert-custom {
+            padding: 0.6rem 1rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid transparent;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+        }
+
+        .alert-custom-success {
+            color: #0F5132;
+            background-color: #D1E7DD;
+            border-color: #BADBCC;
+        }
+
+        .alert-custom-error {
+            color: #842029;
+            background-color: #F8D7DA;
+            border-color: #F5C2C7;
+        }
+
+        .alert-custom-info {
+            color: #055160;
+            background-color: #CFF4FC;
+            border-color: #B6EFFB;
+        }
+
+        /* Animation for form elements */
+        .auth-card > * {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .auth-card > *:nth-child(1) { animation-delay: 0.1s; }
+        .auth-card > *:nth-child(2) { animation-delay: 0.2s; }
+        .auth-card > *:nth-child(3) { animation-delay: 0.3s; }
+        .auth-card > *:nth-child(4) { animation-delay: 0.4s; }
+        .auth-card > *:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .auth-card {
+                padding: 1.5rem;
+            }
+            
+            .auth-title {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Tab Navigation -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="registerTab" onclick="switchTab('register')">
+                    <i class="bi bi-person-plus ms-2"></i>ثبت نام
+                </button>
+                <button class="auth-tab" id="loginTab" onclick="switchTab('login')">
+                    <i class="bi bi-box-arrow-in-right ms-2"></i>ورود
+                </button>
+            </div>
+            
+            <!-- Registration Form -->
+            <div id="registerForm" class="auth-form">
+                <h2 class="auth-title">
+                    <i class="bi bi-person-plus-fill"></i>
+                    ایجاد حساب کاربری
+                </h2>
                 
-                <!-- Registration Form -->
-                <div id="registerForm" class="auth-form">
-                    <h2 class="auth-title">
-                        <i class="bi bi-person-plus-fill"></i>
-                        ایجاد حساب کاربری
-                    </h2>
-                    
-                    <!-- Flash Messages for Registration -->
-                    {% with messages = get_flashed_messages(with_categories=true, category_filter=['register']) %}
-                      {% if messages %}
-                        {% for category, message in messages %}
-                          <div class="alert alert-custom alert-custom-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                          </div>
-                        {% endfor %}
-                      {% endif %}
-                    {% endwith %}
-                    
-                    <form method="POST" action="{{ url_for('register') }}" id="registrationForm" novalidate>
-                        {{ form.hidden_tag() }}
-                        <div class="mb-3">
-                            {{ form.name.label(class="form-label") }}
-                            <span class="required">*</span>
-                            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="نام کامل") }}
-                            {% for error in form.name.errors %}
-                                <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            {{ form.major.label(class="form-label") }}
-                            <span class="required">*</span>
-                            {{ form.major(class="form-select" + (" is-invalid" if form.major.errors else "")) }}
-                            {% for error in form.major.errors %}
-                                <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            {{ form.grade.label(class="form-label") }}
-                            <span class="required">*</span>
-                            {{ form.grade(class="form-select" + (" is-invalid" if form.grade.errors else "")) }}
-                            {% for error in form.grade.errors %}
-                                <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            {{ form.password.label(class="form-label") }}
-                            <span class="required">*</span>
-                            <div class="password-container">
-                                {{ form.password(class="form-control password-input", id="password") }}
-                                <i class="bi bi-eye-slash password-icon" id="passwordToggle"></i>
-                            </div>
-                            {% for error in form.password.errors %}
-                                <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="mb-4">
-                            {{ form.confirm_password.label(class="form-label") }}
-                            <span class="required">*</span>
-                            <div class="password-container">
-                                {{ form.confirm_password(class="form-control password-input", id="confirm_password") }}
-                                <i class="bi bi-eye-slash password-icon" id="confirmPasswordToggle"></i>
-                            </div>
-                            {% for error in form.confirm_password.errors %}
-                                <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="d-grid mb-3">
-                            {{ form.submit(class="btn btn-primary btn-auth") }}
-                        </div>
-                        
-                        <div class="already-registered">
-                            قبلا ثبت‌نام کرده‌اید؟
-                            <a href="#" onclick="switchTab('login'); return false;">وارد شوید</a>
-                        </div>
-                    </form>
-                </div>
+                <!-- Flash Messages for Registration -->
+                <div id="registerFlashMessages"></div>
                 
-                <!-- Login Form -->
-                <div id="loginForm" class="auth-form" style="display: none;">
-                    <h2 class="auth-title">
-                        <i class="bi bi-box-arrow-in-right"></i>
-                        ورود به حساب کاربری
-                    </h2>
-                    
-                    <!-- Flash Messages for Login -->
-                    {% with messages = get_flashed_messages(with_categories=true, category_filter=['login']) %}
-                      {% if messages %}
-                        {% for category, message in messages %}
-                          <div class="alert alert-custom alert-custom-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                          </div>
-                        {% endfor %}
-                      {% endif %}
-                    {% endwith %}
-                    
-                    <form method="POST" action="{{ url_for('login') }}" id="loginFormElement" novalidate>
-                        {{ login_form.hidden_tag() }}
-                        <div class="mb-3">
-                            {{ login_form.username.label(class="form-label") }}
+                <form id="registrationForm" novalidate>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">
+                            نام و نام خانوادگی
                             <span class="required">*</span>
-                            {{ login_form.username(class="form-control" + (" is-invalid" if login_form.username.errors else ""), placeholder="نام کاربری") }}
-                            {% for error in login_form.username.errors %}
-                                <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            {{ login_form.password.label(class="form-label") }}
+                        </label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="نام کامل" required>
+                        <div class="invalid-feedback">لطفاً نام و نام خانوادگی خود را وارد کنید</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="major" class="form-label">
+                            رشته تحصیلی
                             <span class="required">*</span>
-                            <div class="password-container">
-                                {{ login_form.password(class="form-control password-input", id="login_password") }}
-                                <i class="bi bi-eye-slash password-icon" id="loginPasswordToggle"></i>
-                            </div>
-                            {% for error in login_form.password.errors %}
-                                <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
+                        </label>
+                        <select class="form-select" id="major" name="major" required>
+                            <option value="" selected disabled>انتخاب رشته</option>
+                            <option value="computer">کامپیوتر</option>
+                            <option value="electrical">برق</option>
+                            <option value="mechanical">مکانیک</option>
+                            <option value="civil">عمران</option>
+                            <option value="chemical">شیمی</option>
+                            <option value="other">سایر</option>
+                        </select>
+                        <div class="invalid-feedback">لطفاً رشته تحصیلی خود را انتخاب کنید</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="grade" class="form-label">
+                            مقطع تحصیلی
+                            <span class="required">*</span>
+                        </label>
+                        <select class="form-select" id="grade" name="grade" required>
+                            <option value="" selected disabled>انتخاب مقطع</option>
+                            <option value="diploma">دیپلم</option>
+                            <option value="associate">کاردانی</option>
+                            <option value="bachelor">کارشناسی</option>
+                            <option value="master">کارشناسی ارشد</option>
+                            <option value="phd">دکتری</option>
+                        </select>
+                        <div class="invalid-feedback">لطفاً مقطع تحصیلی خود را انتخاب کنید</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            رمز عبور
+                            <span class="required">*</span>
+                        </label>
+                        <div class="password-container">
+                            <input type="password" class="form-control password-input" id="password" name="password" placeholder="رمز عبور" required>
+                            <i class="bi bi-eye-slash password-icon" id="passwordToggle"></i>
                         </div>
-                        
-                        <div class="mb-3">
-                            <div class="form-check">
-                                {{ login_form.remember_me(class="form-check-input") }}
-                                {{ login_form.remember_me.label(class="form-check-label") }}
-                            </div>
+                        <div class="invalid-feedback">لطفاً یک رمز عبور معتبر وارد کنید</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="confirm_password" class="form-label">
+                            تکرار رمز عبور
+                            <span class="required">*</span>
+                        </label>
+                        <div class="password-container">
+                            <input type="password" class="form-control password-input" id="confirm_password" name="confirm_password" placeholder="تکرار رمز عبور" required>
+                            <i class="bi bi-eye-slash password-icon" id="confirmPasswordToggle"></i>
                         </div>
-                        
-                        <div class="d-grid mb-3">
-                            {{ login_form.submit(class="btn btn-secondary btn-auth") }}
+                        <div class="invalid-feedback">رمز عبور و تکرار آن باید یکسان باشند</div>
+                    </div>
+                    
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary btn-auth">
+                            <i class="bi bi-person-plus ms-2"></i>
+                            ثبت نام
+                        </button>
+                    </div>
+                    
+                    <div class="already-registered">
+                        قبلا ثبت‌نام کرده‌اید؟
+                        <a href="#" onclick="switchTab('login'); return false;">وارد شوید</a>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form" style="display: none;">
+                <h2 class="auth-title">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    ورود به حساب کاربری
+                </h2>
+                
+                <!-- Flash Messages for Login -->
+                <div id="loginFlashMessages"></div>
+                
+                <form id="loginFormElement" novalidate>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            نام کاربری یا ایمیل
+                            <span class="required">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="نام کاربری یا ایمیل" required>
+                        <div class="invalid-feedback">لطفاً نام کاربری یا ایمیل خود را وارد کنید</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="login_password" class="form-label">
+                            رمز عبور
+                            <span class="required">*</span>
+                        </label>
+                        <div class="password-container">
+                            <input type="password" class="form-control password-input" id="login_password" name="login_password" placeholder="رمز عبور" required>
+                            <i class="bi bi-eye-slash password-icon" id="loginPasswordToggle"></i>
                         </div>
-                        
-                        <div class="already-registered">
-                            حساب کاربری ندارید؟
-                            <a href="#" onclick="switchTab('register'); return false;">ثبت‌نام کنید</a>
+                        <div class="invalid-feedback">لطفاً رمز عبور خود را وارد کنید</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
+                            <label class="form-check-label" for="remember_me">
+                                مرا به خاطر بسپار
+                            </label>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                    
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-secondary btn-auth">
+                            <i class="bi bi-box-arrow-in-right ms-2"></i>
+                            ورود
+                        </button>
+                    </div>
+                    
+                    <div class="already-registered">
+                        حساب کاربری ندارید؟
+                        <a href="#" onclick="switchTab('register'); return false;">ثبت‌نام کنید</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-// Tab switching functionality
-function switchTab(tab) {
-    const registerTab = document.getElementById('registerTab');
-    const loginTab = document.getElementById('loginTab');
-    const registerForm = document.getElementById('registerForm');
-    const loginForm = document.getElementById('loginForm');
-    
-    if (tab === 'register') {
-        registerTab.classList.add('active');
-        loginTab.classList.remove('active');
-        registerForm.style.display = 'block';
-        loginForm.style.display = 'none';
-    } else {
-        registerTab.classList.remove('active');
-        loginTab.classList.add('active');
-        registerForm.style.display = 'none';
-        loginForm.style.display = 'block';
-    }
-}
-
-// Password visibility toggle
-function setupPasswordToggle(toggleId, inputId) {
-    const toggle = document.getElementById(toggleId);
-    const input = document.getElementById(inputId);
-    if (toggle && input) {
-        toggle.addEventListener('click', function() {
-            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-            input.setAttribute('type', type);
-            this.classList.toggle('bi-eye');
-            this.classList.toggle('bi-eye-slash');
-        });
-    }
-}
-
-// Form validation
-function validateForm(form) {
-    let isValid = true;
-    const inputs = form.querySelectorAll('input[required], select[required]');
-    
-    inputs.forEach(input => {
-        if (!input.value.trim()) {
-            input.classList.add('is-invalid');
-            isValid = false;
-        } else {
-            input.classList.remove('is-invalid');
-            input.classList.add('is-valid');
-        }
-    });
-    
-    // Special validation for password confirmation
-    const password = document.getElementById('password');
-    const confirmPassword = document.getElementById('confirm_password');
-    
-    if (password && confirmPassword) {
-        if (password.value !== confirmPassword.value) {
-            confirmPassword.classList.add('is-invalid');
-            isValid = false;
-        } else if (confirmPassword.value) {
-            confirmPassword.classList.remove('is-invalid');
-            confirmPassword.classList.add('is-valid');
-        }
-    }
-    
-    return isValid;
-}
-
-// Initialize everything when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Setup password toggles
-    setupPasswordToggle('passwordToggle', 'password');
-    setupPasswordToggle('confirmPasswordToggle', 'confirm_password');
-    setupPasswordToggle('loginPasswordToggle', 'login_password');
-    
-    // Form validation and submission
-    const registrationForm = document.getElementById('registrationForm');
-    if (registrationForm) {
-        registrationForm.addEventListener('submit', function(e) {
-            if (!validateForm(this)) {
-                e.preventDefault();
-            }
-        });
-    }
-    
-    const loginFormElement = document.getElementById('loginFormElement');
-    if (loginFormElement) {
-        loginFormElement.addEventListener('submit', function(e) {
-            if (!validateForm(this)) {
-                e.preventDefault();
-            }
-        });
-    }
-    
-    // Clear validation on input
-    const inputs = document.querySelectorAll('.form-control, .form-select');
-    inputs.forEach(input => {
-        input.addEventListener('input', function() {
-            this.classList.remove('is-invalid');
-            if (this.value.trim()) {
-                this.classList.add('is-valid');
+    <script>
+        // Tab switching functionality
+        function switchTab(tab) {
+            const registerTab = document.getElementById('registerTab');
+            const loginTab = document.getElementById('loginTab');
+            const registerForm = document.getElementById('registerForm');
+            const loginForm = document.getElementById('loginForm');
+            
+            if (tab === 'register') {
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
+                registerForm.style.display = 'block';
+                loginForm.style.display = 'none';
             } else {
-                this.classList.remove('is-valid');
+                registerTab.classList.remove('active');
+                loginTab.classList.add('active');
+                registerForm.style.display = 'none';
+                loginForm.style.display = 'block';
             }
+        }
+
+        // Password visibility toggle
+        function setupPasswordToggle(toggleId, inputId) {
+            const toggle = document.getElementById(toggleId);
+            const input = document.getElementById(inputId);
+            if (toggle && input) {
+                toggle.addEventListener('click', function() {
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    this.classList.toggle('bi-eye');
+                    this.classList.toggle('bi-eye-slash');
+                });
+            }
+        }
+
+        // Form validation
+        function validateForm(form) {
+            let isValid = true;
+            const inputs = form.querySelectorAll('input[required], select[required]');
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    input.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                }
+            });
+            
+            // Special validation for password confirmation
+            const password = document.getElementById('password');
+            const confirmPassword = document.getElementById('confirm_password');
+            
+            if (password && confirmPassword) {
+                if (password.value !== confirmPassword.value) {
+                    confirmPassword.classList.add('is-invalid');
+                    isValid = false;
+                } else if (confirmPassword.value) {
+                    confirmPassword.classList.remove('is-invalid');
+                    confirmPassword.classList.add('is-valid');
+                }
+            }
+            
+            return isValid;
+        }
+
+        // Show flash message
+        function showFlashMessage(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-custom alert-custom-${type} alert-dismissible fade show`;
+            alertDiv.textContent = message;
+            
+            const closeButton = document.createElement('button');
+            closeButton.type = 'button';
+            closeButton.className = 'btn-close';
+            closeButton.setAttribute('data-bs-dismiss', 'alert');
+            closeButton.setAttribute('aria-label', 'Close');
+            
+            alertDiv.appendChild(closeButton);
+            container.appendChild(alertDiv);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                alertDiv.classList.remove('show');
+                setTimeout(() => {
+                    container.removeChild(alertDiv);
+                }, 300);
+            }, 5000);
+        }
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Setup password toggles
+            setupPasswordToggle('passwordToggle', 'password');
+            setupPasswordToggle('confirmPasswordToggle', 'confirm_password');
+            setupPasswordToggle('loginPasswordToggle', 'login_password');
+            
+            // Form validation and submission
+            const registrationForm = document.getElementById('registrationForm');
+            if (registrationForm) {
+                registrationForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    if (validateForm(this)) {
+                        // Show success message
+                        showFlashMessage('registerFlashMessages', 'ثبت‌نام با موفقیت انجام شد! در حال انتقال به صفحه اصلی...', 'success');
+                        
+                        // In a real app, you would submit form here
+                        // For demo purposes, we'll just show the message
+                        setTimeout(() => {
+                            // Redirect to home page or dashboard
+                            console.log('Form submitted successfully');
+                        }, 2000);
+                    } else {
+                        showFlashMessage('registerFlashMessages', 'لطفاً تمام فیلدهای الزامی را با دقت پر کنید', 'error');
+                    }
+                });
+            }
+            
+            const loginFormElement = document.getElementById('loginFormElement');
+            if (loginFormElement) {
+                loginFormElement.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    if (validateForm(this)) {
+                        // Show success message
+                        showFlashMessage('loginFlashMessages', 'ورود با موفقیت انجام شد! در حال انتقال به صفحه اصلی...', 'success');
+                        
+                        // In a real app, you would submit form here
+                        // For demo purposes, we'll just show the message
+                        setTimeout(() => {
+                            // Redirect to home page or dashboard
+                            console.log('Login successful');
+                        }, 2000);
+                    } else {
+                        showFlashMessage('loginFlashMessages', 'نام کاربری یا رمز عبور اشتباه است', 'error');
+                    }
+                });
+            }
+            
+            // Clear validation on input
+            const inputs = document.querySelectorAll('.form-control, .form-select');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    this.classList.remove('is-invalid');
+                    if (this.value.trim()) {
+                        this.classList.add('is-valid');
+                    } else {
+                        this.classList.remove('is-valid');
+                    }
+                });
+            });
         });
-    });
-});
-</script>
-{% endblock %}
+    </script>
+</body>
+</html>
