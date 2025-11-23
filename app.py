@@ -5,16 +5,19 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
 from sqlalchemy import or_, and_, case
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, BooleanField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
-
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_default_secret_key_for_development')
+
 database_url = os.getenv("DATABASE_URL")
 if not database_url:
-    raise RuntimeError("DATABASE_URL environment variable is not set!")
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    database_url = 'sqlite:///' + os.path.join(basedir, 'app.db')
+    print(f"WARNING: DATABASE_URL not set. Using local SQLite database: {database_url}")
+
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -27,7 +30,8 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'current_user_id' not in session:
-            return redirect(url_for('login'))
+            flash('برای دسترسی به این صفحه باید وارد شوید.', 'info')
+            return redirect(url_for('show_auth_page'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -73,6 +77,7 @@ class RegistrationForm(FlaskForm):
 class LoginForm(FlaskForm):
     username = StringField('نام کاربری', validators=[DataRequired()])
     password = PasswordField('رمز عبور', validators=[DataRequired()])
+    remember_me = BooleanField('مرا به خاطر بسپار')
     submit = SubmitField('ورود')
 
 class UpdateProfileForm(FlaskForm):
@@ -107,9 +112,20 @@ def index():
 def about():
     return render_template('about.html')
 
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/auth')
+def show_auth_page():
+    """این مسیر صفحه واحد ثبت‌نام و ورود را نمایش می‌دهد."""
+    if session.get('current_user_id'):
+        return redirect(url_for('match'))
+        
+    form = RegistrationForm()
+    login_form = LoginForm()
+    return render_template('register.html', form=form, login_form=login_form)
+
+@app.route('/register', methods=['POST'])
 def register():
     form = RegistrationForm()
+    login_form = LoginForm()
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data, method='pbkdf2:sha256')
         new_user = User(
@@ -125,24 +141,27 @@ def register():
         session['current_user_id'] = new_user.id
         return redirect(url_for('match'))
         
-    return render_template('register.html', form=form)
+    return render_template('register.html', form=form, login_form=login_form)
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST'])
 def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(name=form.username.data).first()
-        if user and check_password_hash(user.password_hash, form.password.data):
+    login_form = LoginForm()
+    form = RegistrationForm()
+    if login_form.validate_on_submit():
+        user = User.query.filter_by(name=login_form.username.data).first()
+        if user and check_password_hash(user.password_hash, login_form.password.data):
             session['current_user_id'] = user.id
+            # TODO: Implement 'remember me' functionality if needed
             return redirect(url_for('match'))
         else:
             flash('نام کاربری یا رمز عبور اشتباه است.', 'error')
-    return render_template('login.html', form=form)
+    return render_template('register.html', form=form, login_form=login_form)
 
 @app.route('/logout')
 def logout():
     session.pop('current_user_id', None)
-    return redirect(url_for('login'))
+    flash('شما با موفقیت از حساب کاربری خود خارج شدید.', 'info')
+    return redirect(url_for('show_auth_page'))
 
 @app.route('/match')
 @login_required
@@ -206,19 +225,26 @@ def delete_account():
     db.session.commit()
     session.pop('current_user_id', None)
     flash('حساب کاربری شما حذف شد.', 'info')
-    return redirect(url_for('register'))
+    return redirect(url_for('show_auth_page'))
 
 @app.route('/chat/<int:other_user_id>')
 @login_required
 def chat(other_user_id):
     current_user_id = session.get('current_user_id')
+    if current_user_id == other_user_id:
+        return redirect(url_for('inbox', user_id=current_user_id))
+
     other_user = User.query.get_or_404(other_user_id)
 
     unread_messages = Message.query.filter(
         and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id, Message.read_at.is_(None))
     ).all()
+
     for msg in unread_messages:
         msg.read_at = db.func.now()
+        room_id = f"chat-{min(msg.sender_id, msg.receiver_id)}-{max(msg.sender_id, msg.receiver_id)}"
+        socketio.emit('message_read', {'message_id': msg.id}, room=room_id)
+    
     db.session.commit()
 
     messages = Message.query.filter(
@@ -228,7 +254,6 @@ def chat(other_user_id):
         )
     ).order_by(Message.timestamp.asc()).all()
     
-    # فرم ارسال پیام دیگر لازم نیست
     return render_template('chat.html', other_user=other_user, messages=messages)
 
 @app.route('/inbox/<int:user_id>')
@@ -237,19 +262,48 @@ def inbox(user_id):
     current_user_id = session.get('current_user_id')
     if current_user_id != user_id:
         abort(403)
-        
-    user1 = case((Message.receiver_id < Message.sender_id, Message.receiver_id), else_=Message.sender_id)
-    user2 = case((Message.receiver_id > Message.sender_id, Message.receiver_id), else_=Message.sender_id)
-    subquery = db.session.query(user1.label('user1_id'), user2.label('user2_id'), db.func.max(Message.timestamp).label('max_timestamp')).filter(or_(Message.receiver_id == current_user_id, Message.sender_id == current_user_id)).group_by(user1, user2).subquery()
-    conversations = db.session.query(Message.content, Message.timestamp, user1.label('user1_id'), user2.label('user2_id')).join(subquery, and_(Message.timestamp == subquery.c.max_timestamp, user1 == subquery.c.user1_id, user2 == subquery.c.user2_id)).all()
+
+    subquery = db.session.query(
+        Message.sender_id,
+        Message.receiver_id,
+        db.func.max(Message.timestamp).label('last_timestamp')
+    ).filter(
+        or_(Message.sender_id == current_user_id, Message.receiver_id == current_user_id)
+    ).group_by(Message.sender_id, Message.receiver_id).subquery()
+
+    last_messages = db.session.query(
+        Message.content,
+        Message.timestamp,
+        Message.sender_id,
+        Message.receiver_id
+    ).join(
+        subquery,
+        and_(
+            Message.sender_id == subquery.c.sender_id,
+            Message.receiver_id == subquery.c.receiver_id,
+            Message.timestamp == subquery.c.last_timestamp
+        )
+    ).all()
 
     formatted_conversations = []
-    for conv in conversations:
-        other_user_id = conv.user1_id if conv.user1_id != current_user_id else conv.user2_id
+    for msg in last_messages:
+        other_user_id = msg.sender_id if msg.sender_id != current_user_id else msg.receiver_id
         other_user = User.query.get(other_user_id)
-        formatted_conversations.append({'other_user_id': other_user.id, 'other_user_name': other_user.name, 'last_message_content': conv.content, 'last_message_timestamp': conv.timestamp})
+        
+        unread_count = Message.query.filter(
+            and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id, Message.read_at.is_(None))
+        ).count()
+
+        formatted_conversations.append({
+            'other_user_id': other_user.id, 
+            'other_user_name': other_user.name, 
+            'last_message_content': msg.content, 
+            'last_message_timestamp': msg.timestamp,
+            'has_unread': unread_count > 0
+        })
+
     formatted_conversations.sort(key=lambda x: x['last_message_timestamp'], reverse=True)
-    return render_template('inbox.html', conversations=formatted_conversations)
+    return render_template('inbox.html', conversations=formatted_conversations, user_id=user_id)
 
 @socketio.on('connect')
 def handle_connect():
@@ -291,9 +345,30 @@ def handle_send_message(data):
         'sender_name': user.name,
         'content': content,
         'timestamp': msg.timestamp.strftime('%H:%M'),
-        'sender_id': current_user_id
+        'sender_id': current_user_id,
+        'message_id': msg.id
     }, room=room_id)
 
+@socketio.on('mark_as_read')
+def handle_mark_as_read(data):
+    """این رویداد از طرف کاربری ارسال می‌شود که پیام را دیده است."""
+    current_user_id = session.get('current_user_id')
+    if not current_user_id:
+        return
+
+    message_id = data['message_id']
+    message = Message.query.get(message_id)
+
+    if message and message.receiver_id == current_user_id and not message.read_at:
+        message.read_at = db.func.now()
+        db.session.commit()
+
+        room_id = f"chat-{min(message.sender_id, message.receiver_id)}-{max(message.sender_id, message.receiver_id)}"
+
+        emit('message_read', {'message_id': message.id}, room=room_id)
+
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, host='0.0.0.0', port=port)
