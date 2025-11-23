@@ -5,10 +5,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
 from sqlalchemy import or_, and_, case
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField # SelectField را اضافه کنید
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 
-# --- پیکربندی ---
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 database_url = os.getenv("DATABASE_URL")
@@ -20,7 +19,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# --- دکوراتور احراز هویت ---
 def login_required(f):
     from functools import wraps
     @wraps(f)
@@ -30,7 +28,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# --- مدل‌های دیتابیس ---
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
@@ -45,13 +42,11 @@ class Message(db.Model):
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
 
-# --- کلاس‌های فرم Flask-WTF ---
 
-# لیست گزینه‌ها برای جلوگیری از تکرار کد
 MAJOR_CHOICES = [
     ('', 'رشته خود را انتخاب کنید'),
     ('مهندسی کامپیوتر', 'مهندسی کامپیوتر'),
-    ('علوم کامپیوتر', 'علوم کامپیوتر'),
+    ('علوم کامپیوتر', 'علوم کامپیوتر')
 ]
 
 GRADE_CHOICES = [
@@ -126,8 +121,11 @@ def register():
         )
         db.session.add(new_user)
         db.session.commit()
-        flash('حساب کاربری شما با موفقیت ایجاد شد. لطفاً وارد شوید.', 'success')
-        return redirect(url_for('login'))
+        
+        flash('ثبت‌نام با موفقیت انجام شد. به همکلاسی یاب خوش آمدید!', 'success')
+        session['current_user_id'] = new_user.id
+        return redirect(url_for('match'))
+
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
