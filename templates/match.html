@@ -1,478 +1,26 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎓 همکلاسی یاب | جست‌وجو</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --persian-blue: #1e3a8a;
-            --persian-turquoise: #06b6d4;
-            --persian-red: #dc2626;
-            --persian-saffron: #f59e0b;
-            --persian-ochre: #92400e;
-            --persian-green: #059669;
-            --light-persian-blue: #dbeafe;
-            --gradient-primary: linear-gradient(135deg, var(--persian-blue), var(--persian-turquoise));
-            --gradient-secondary: linear-gradient(135deg, var(--persian-red), var(--persian-saffron));
-        }
+{% extends "base.html" %}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% block title %}🎓 همکلاسی یاب | جست‌وجو{% endblock %}
 
-        body {
-            font-family: 'Vazirmatn', sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
-            overflow-x: hidden;
-        }
-
-        /* Background Pattern */
-        .bg-pattern {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e3a8a' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            z-index: -1;
-        }
-
-        /* Navigation Bar */
-        .navbar {
-            background: var(--gradient-primary);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            padding: 1rem 0;
-            transition: all 0.3s ease;
-        }
-
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: white !important;
-            display: flex;
-            align-items: center;
-        }
-
-        .navbar-brand:hover {
-            transform: scale(1.05);
-            transition: transform 0.3s ease;
-        }
-
-        .navbar-nav .nav-link {
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.85) !important;
-            margin: 0 0.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            transition: all 0.3s ease;
-        }
-
-        .navbar-nav .nav-link:hover,
-        .navbar-nav .nav-link.active {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: white !important;
-        }
-
-        /* Search Section */
-        .search-section {
-            padding: 5rem 0 3rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .search-container {
-            max-width: 900px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 2;
-        }
-
-        .page-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 2rem;
-            text-align: center;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            position: relative;
-        }
-
-        .page-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 4px;
-            background: var(--gradient-secondary);
-            border-radius: 2px;
-        }
-
-        /* Search Form */
-        .search-form {
-            background-color: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            margin-bottom: 3rem;
-            position: relative;
-            overflow: hidden;
-            border-top: 4px solid var(--persian-turquoise);
-        }
-
-        .search-input-group {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .search-input {
-            border: 2px solid #e2e8f0;
-            border-radius: 50px;
-            padding: 0.75rem 1.5rem 0.75rem 3.5rem;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            flex-grow: 1;
-        }
-
-        .search-input:focus {
-            border-color: var(--persian-turquoise);
-            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
-            outline: none;
-        }
-
-        .search-icon {
-            position: absolute;
-            right: 1.5rem;
-            color: var(--persian-turquoise);
-            font-size: 1.2rem;
-        }
-
-        /* ✨ NEW: Clear Search Button */
-        .search-clear-btn {
-            position: absolute;
-            left: 5rem; /* Position it inside the input */
-            background: none;
-            border: none;
-            color: #94a3b8;
-            cursor: pointer;
-            font-size: 1.2rem;
-            display: none; /* Hidden by default */
-        }
-        .search-clear-btn:hover {
-            color: var(--persian-red);
-        }
-
-        .search-button {
-            background: var(--gradient-primary);
-            color: white;
-            border: none;
-            padding: 0.75rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 50px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            margin-right: 1rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .search-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .search-button i {
-            margin-left: 0.5rem;
-        }
-
-        /* User Cards */
-        .users-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .user-card {
-            background-color: white;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            border-top: 4px solid var(--persian-blue);
-        }
-
-        .user-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        .user-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            margin: 0 auto 1.5rem;
-            font-size: 2.5rem;
-            font-weight: 700;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            object-fit: cover;
-        }
-
-        .user-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--persian-blue);
-            margin-bottom: 1rem;
-        }
-
-        .user-info {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 1.5rem;
-        }
-
-        .user-info li {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 0.75rem;
-            font-size: 1rem;
-            color: #475569;
-        }
-
-        .user-info i {
-            margin-left: 0.5rem;
-            color: var(--persian-turquoise);
-            font-size: 1.1rem;
-        }
-
-        .user-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .btn-message {
-            background: var(--gradient-secondary);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 50px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-message:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            color: white;
-        }
-
-        .btn-message i {
-            margin-left: 0.5rem;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            background-color: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .empty-icon {
-            font-size: 4rem;
-            color: var(--persian-turquoise);
-            margin-bottom: 1.5rem;
-        }
-
-        .empty-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--persian-blue);
-            margin-bottom: 1rem;
-        }
-
-        .empty-description {
-            font-size: 1.1rem;
-            color: #64748b;
-            margin-bottom: 2rem;
-        }
-
-        /* ✨ NEW: Generic button style for empty state */
-        .btn-primary-custom {
-            display: inline-flex;
-            align-items: center;
-            background: var(--gradient-primary);
-            color: white;
-            border: none;
-            padding: 0.75rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 50px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-        .btn-primary-custom:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            color: white;
-        }
-        .btn-primary-custom i {
-            margin-left: 0.5rem;
-        }
-
-        /* Decorative Elements */
-        .decorative-circle {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.1;
-            z-index: -1;
-        }
-
-        .circle-1 {
-            width: 300px;
-            height: 300px;
-            background-color: var(--persian-turquoise);
-            top: -150px;
-            left: -150px;
-        }
-
-        .circle-2 {
-            width: 200px;
-            height: 200px;
-            background-color: var(--persian-saffron);
-            bottom: -100px;
-            right: -100px;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .page-title {
-                font-size: 2rem;
-            }
-            
-            .users-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-            
-            .user-card {
-                padding: 1.5rem;
-            }
-            
-            .navbar-brand {
-                font-size: 1.25rem;
-            }
-            
-            .search-input-group {
-                flex-direction: column;
-            }
-            
-            .search-button {
-                width: 100%;
-                margin-right: 0;
-                margin-top: 1rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="bg-pattern"></div>
-    
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="bi bi-mortarboard-fill ms-2"></i>
-                همکلاسی یاب
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            <i class="bi bi-house-fill ms-1"></i>
-                            خانه
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/register">
-                            <i class="bi bi-person-plus-fill ms-1"></i>
-                            ثبت اطلاعات
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/match">
-                            <i class="bi bi-search ms-1"></i>
-                            جست‌وجو
-                        </a>
-                    </li>
-                    <!-- ✨ NEW: Inbox Link -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="/inbox/{{ current_user_id }}">
-                            <i class="bi bi-envelope-fill ms-1"></i>
-                            صندوق پیام
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/about">
-                            <i class="bi bi-info-circle-fill ms-1"></i>
-                            درباره برنامه
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Search Section -->
-    <section class="search-section">
-        <div class="decorative-circle circle-1"></div>
-        <div class="decorative-circle circle-2"></div>
-        <div class="container">
-            <div class="search-container">
-                <h2 class="page-title">
-                    <i class="bi bi-search"></i>
-                    جست‌وجوی همکلاسی‌ها
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="page-title text-center mb-4">
+                    <i class="bi bi-search ms-2"></i>جست‌وجوی همکلاسی‌ها
                 </h2>
 
                 <!-- Search Form -->
-                <form method="GET" action="/match" class="search-form" id="searchForm">
-                    <div class="search-input-group">
-                        <i class="bi bi-search search-icon"></i>
-                        <input type="text" name="q" class="search-input" id="searchInput" placeholder="جست‌وجو بر اساس رشته یا نام..." value="{{ request.args.get('q') or '' }}">
-                        <!-- ✨ NEW: Clear Button -->
+                <form method="GET" action="{{ url_for('match') }}" class="search-form card-custom p-4 mb-5">
+                    <div class="search-input-group position-relative">
+                        <input type="text" name="q" class="form-control form-control-custom search-input pe-5" id="searchInput" placeholder="جست‌وجو بر اساس رشته یا نام..." value="{{ request.args.get('q') or '' }}">
                         <button type="button" class="search-clear-btn" id="clearSearchBtn" title="پاک کردن">
                             <i class="bi bi-x-circle"></i>
                         </button>
-                        <button type="submit" class="search-button" id="searchButton">
-                            <i class="bi bi-search"></i>
-                            جست‌وجو
+                        <button type="submit" class="btn btn-custom-primary search-button" id="searchButton">
+                            <i class="bi bi-search ms-2"></i>جست‌وجو
                         </button>
                     </div>
                 </form>
@@ -480,79 +28,213 @@
                 {% if users %}
                     <div class="users-grid">
                         {% for user in users %}
-                        <div class="user-card">
-                            <img src="https://ui-avatars.com/api/?name={{ user.name|urlencode }}&background=1e3a8a&color=fff&size=128" alt="{{ user.name }}" class="user-avatar">
-                            
-                            <h3 class="user-name">{{ user.name }}</h3>
-                            <ul class="user-info">
-                                <li>
-                                    <i class="bi bi-mortarboard"></i>
-                                    رشته: {{ user.major }}
-                                </li>
-                                <li>
-                                    <i class="bi bi-award"></i>
-                                    مقطع: {{ user.grade }}
-                                </li>
-                            </ul>
-                            <div class="user-actions">
-                                <a href="/chat/{{ user.id }}" class="btn-message">
-                                    <i class="bi bi-envelope"></i>
-                                    ارسال پیام
-                                </a>
+                        <div class="card-custom user-card">
+                            <div class="text-center">
+                                <img src="https://ui-avatars.com/api/?name={{ user.name|urlencode }}&background=0EA5E9&color=fff&size=128" alt="{{ user.name }}" class="user-avatar rounded-circle mb-3">
+                                
+                                <h3 class="user-name">{{ user.name }}</h3>
+                                <ul class="user-info list-unstyled mb-4">
+                                    <li class="mb-2">
+                                        <i class="bi bi-mortarboard ms-2"></i>رشته: {{ user.major }}
+                                    </li>
+                                    <li>
+                                        <i class="bi bi-award ms-2"></i>مقطع: {{ user.grade }}
+                                    </li>
+                                </ul>
+                                <div class="user-actions">
+                                    <a href="{{ url_for('chat', user_id=user.id) }}" class="btn btn-custom-secondary w-100">
+                                        <i class="bi bi-envelope ms-2"></i>ارسال پیام
+                                    </a>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="empty-state">
-                        <div class="empty-icon">
+                    <div class="card-custom empty-state text-center p-5">
+                        <div class="empty-icon mb-4">
                             <i class="bi bi-people"></i>
                         </div>
-                        <h3 class="empty-title">هیچ همکلاسی‌ای پیدا نشد</h3>
-                        <p class="empty-description">
+                        <h3 class="empty-title mb-3">هیچ همکلاسی‌ای پیدا نشد</h3>
+                        <p class="empty-description mb-4">
                             با جستجوی کلمات کلیدی مختلف، همکلاسی‌های خود را پیدا کنید.
                         </p>
-                        <!-- ✨ NEW: Button to go back home -->
-                        <a href="/" class="btn-primary-custom">
-                            <i class="bi bi-house-door"></i>
-                            بازگشت به صفحه اصلی
+                        <a href="{{ url_for('index') }}" class="btn btn-custom-primary">
+                            <i class="bi bi-house-door ms-2"></i>بازگشت به صفحه اصلی
                         </a>
                     </div>
                 {% endif %}
             </div>
         </div>
-    </section>
+    </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('searchInput');
-            const clearBtn = document.getElementById('clearSearchBtn');
-            const searchForm = document.getElementById('searchForm');
-            const searchButton = document.getElementById('searchButton');
+<style>
+    .search-form {
+        max-width: 700px;
+        margin: 0 auto 3rem;
+    }
+    
+    .search-input-group {
+        display: flex;
+        align-items: center;
+    }
+    
+    .search-input {
+        border-radius: 50px 0 0 50px !important;
+        border-right: none;
+        padding-right: 3rem;
+    }
+    
+    .search-button {
+        border-radius: 0 50px 50px 0;
+        border-left: none;
+    }
+    
+    .search-clear-btn {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-light);
+        cursor: pointer;
+        font-size: 1.2rem;
+        display: none;
+        z-index: 10;
+    }
+    
+    .search-clear-btn:hover {
+        color: var(--danger-color);
+    }
+    
+    .users-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .user-card {
+        padding: 2rem;
+        transition: var(--transition);
+        text-align: center;
+    }
+    
+    .user-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .user-avatar {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .user-name {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    
+    .user-info {
+        color: var(--text-light);
+    }
+    
+    .user-info i {
+        color: var(--secondary-color);
+    }
+    
+    .empty-icon {
+        font-size: 3rem;
+        color: var(--secondary-color);
+    }
+    
+    .empty-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+    
+    .empty-description {
+        color: var(--text-light);
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    /* Animation for user cards */
+    .user-card {
+        animation: fadeIn 0.5s ease-out;
+    }
+    
+    .user-card:nth-child(1) { animation-delay: 0.1s; }
+    .user-card:nth-child(2) { animation-delay: 0.2s; }
+    .user-card:nth-child(3) { animation-delay: 0.3s; }
+    .user-card:nth-child(4) { animation-delay: 0.4s; }
+    .user-card:nth-child(5) { animation-delay: 0.5s; }
+    .user-card:nth-child(6) { animation-delay: 0.6s; }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .users-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .search-input-group {
+            flex-direction: column;
+        }
+        
+        .search-input {
+            border-radius: var(--radius) !important;
+            border: 1px solid var(--border-color);
+            padding-right: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .search-button {
+            border-radius: var(--radius);
+            width: 100%;
+        }
+    }
+</style>
 
-            // ✨ NEW: Show/hide clear button based on input content
-            searchInput.addEventListener('input', function() {
-                if (this.value.length > 0) {
-                    clearBtn.style.display = 'block';
-                } else {
-                    clearBtn.style.display = 'none';
-                }
-            });
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    const searchForm = document.querySelector('.search-form');
+    const searchButton = document.getElementById('searchButton');
 
-            // ✨ NEW: Clear search input
-            clearBtn.addEventListener('click', function() {
-                searchInput.value = '';
-                clearBtn.style.display = 'none';
-                searchInput.focus();
-            });
+    // Show/hide clear button based on input content
+    searchInput.addEventListener('input', function() {
+        if (this.value.length > 0) {
+            clearBtn.style.display = 'block';
+        } else {
+            clearBtn.style.display = 'none';
+        }
+    });
 
-            // ✨ NEW: Add loading state to search button
-            searchForm.addEventListener('submit', function() {
-                searchButton.disabled = true;
-                searchButton.innerHTML = '<i class="bi bi-hourglass-split"></i> در حال جستجو...';
-            });
-        });
-    </script>
-</body>
-</html>
+    // Clear search input
+    clearBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        clearBtn.style.display = 'none';
+        searchInput.focus();
+    });
+
+    // Add loading state to search button
+    searchForm.addEventListener('submit', function() {
+        searchButton.disabled = true;
+        searchButton.innerHTML = '<i class="bi bi-hourglass-split ms-2"></i>در حال جستجو...';
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

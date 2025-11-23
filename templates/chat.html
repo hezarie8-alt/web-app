@@ -1,182 +1,28 @@
 {% extends "base.html" %}
 
-{% block head %}
-<style>
-    body {
-        font-family: 'Vazirmatn', sans-serif;
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        margin: 0;
-        overflow: hidden;
-    }
-
-    /* Chat Header */
-    .chat-header {
-        background: var(--bs-primary);
-        color: white;
-        padding: 1rem 1.5rem;
-        display: flex;
-        align-items: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        flex-shrink: 0;
-    }
-    .chat-header a {
-        color: white;
-        text-decoration: none;
-        font-size: 1.5rem;
-        margin-left: 1rem;
-    }
-    .chat-header-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        margin-left: 1rem;
-        object-fit: cover;
-    }
-    .chat-header-info h5 {
-        margin: 0;
-        font-weight: 700;
-    }
-    .chat-header-info p {
-        margin: 0;
-        font-size: 0.9rem;
-        opacity: 0.8;
-    }
-
-    /* Chat Messages Area */
-    .chat-messages-container {
-        flex-grow: 1;
-        padding: 1.5rem;
-        overflow-y: auto;
-        background-color: #f8fafc;
-    }
-
-    .message {
-        display: flex;
-        margin-bottom: 1rem;
-        animation: fadeIn 0.3s ease-out;
-    }
-    .message.sent {
-        justify-content: flex-start; /* In RTL, sent messages go to the left */
-    }
-    .message.received {
-        justify-content: flex-end; /* In RTL, received messages go to the right */
-    }
-
-    .message-bubble {
-        max-width: 70%;
-        padding: 0.75rem 1rem;
-        border-radius: 18px;
-        position: relative;
-        box-shadow: 0 1px 1px rgba(0,0,0,0.05);
-    }
-    .message.sent .message-bubble {
-        background-color: #e2e8f0;
-        color: #1e293b;
-        border-top-right-radius: 5px;
-    }
-    .message.received .message-bubble {
-        background-color: var(--bs-primary);
-        color: white;
-        border-top-left-radius: 5px;
-    }
-
-    .message-info {
-        font-size: 0.75rem;
-        margin-top: 0.25rem;
-        color: #64748b;
-        text-align: left;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-    }
-    .message.received .message-info {
-        color: rgba(255, 255, 255, 0.7);
-        text-align: right;
-        justify-content: flex-end;
-    }
-    
-    .message-info .read-receipt {
-        margin-right: 5px;
-        font-size: 1rem;
-    }
-
-    .system-message {
-        text-align: center;
-        margin: 1rem 0;
-        color: #64748b;
-        font-size: 0.9rem;
-        font-style: italic;
-    }
-
-    /* Chat Input Area */
-    .chat-input-container {
-        background-color: white;
-        padding: 1rem 1.5rem;
-        border-top: 1px solid #e2e8f0;
-        display: flex;
-        align-items: center;
-        flex-shrink: 0;
-    }
-    .chat-input {
-        border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        padding: 0.75rem 1.25rem;
-        flex-grow: 1;
-        margin-left: 1rem;
-        resize: none;
-        max-height: 100px;
-    }
-    .chat-input:focus {
-        outline: none;
-        border-color: var(--bs-primary);
-    }
-    .btn-send {
-        background: var(--bs-primary);
-        color: white;
-        border: none;
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-    .btn-send:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-</style>
-{% endblock %}
-
 {% block title %}💬 چت با {{ other_user.name }}{% endblock %}
 
 {% block content %}
-<body data-current-user-id="{{ session['current_user_id'] }}" data-other-user-id="{{ other_user.id }}">
-    <header class="chat-header">
-        <a href="{{ url_for('inbox', user_id=session['current_user_id']) }}"><i class="bi bi-arrow-right"></i></a>
-        <img src="https://ui-avatars.com/api/?name={{ other_user.name|urlencode }}&background=0d6efd&color=fff&size=64" alt="{{ other_user.name }}" class="chat-header-avatar">
-        <div class="chat-header-info">
-            <h5>{{ other_user.name }}</h5>
-            <p>{{ other_user.major }} - {{ other_user.grade }}</p>
+<div class="chat-container d-flex flex-column h-100">
+    <!-- Chat Header -->
+    <header class="chat-header p-3 border-bottom">
+        <a href="{{ url_for('inbox', user_id=session['current_user_id']) }}" class="btn btn-link text-reset p-0 me-3">
+            <i class="bi bi-arrow-right fs-5"></i>
+        </a>
+        <img src="https://ui-avatars.com/api/?name={{ other_user.name|urlencode }}&background=0EA5E9&color=fff&size=64" alt="{{ other_user.name }}" class="chat-header-avatar rounded-circle">
+        <div class="chat-header-info ms-3">
+            <h5 class="mb-0 fw-bold">{{ other_user.name }}</h5>
+            <p class="mb-0 text-muted small">{{ other_user.major }} - {{ other_user.grade }}</p>
         </div>
     </header>
 
-    <main class="chat-messages-container" id="chat-messages">
+    <!-- Chat Messages Area -->
+    <main class="chat-messages-container flex-grow-1 p-3 overflow-auto" id="chat-messages">
         {% for message in messages %}
-            <div class="message {{ 'sent' if message.sender_id == session['current_user_id'] else 'received' }}">
+            <div class="message {{ 'sent' if message.sender_id == session['current_user_id'] else 'received' }} mb-3">
                 <div>
-                    <div class="message-bubble">{{ message.content }}</div>
-                    <div class="message-info" data-message-id="{{ message.id }}">
+                    <div class="message-bubble p-3">{{ message.content }}</div>
+                    <div class="message-info small text-muted mt-1" data-message-id="{{ message.id }}">
                         {{ message.timestamp.strftime('%H:%M') }}
                         {% if message.sender_id == session['current_user_id'] %}
                             {% if message.read_at %}
@@ -191,108 +37,228 @@
         {% endfor %}
     </main>
 
-    <footer class="chat-input-container">
-        <form id="message-form">
-            <textarea name="content" class="chat-input" placeholder="پیام خود را بنویسید..." rows="1" required></textarea>
-            <button type="submit" class="btn-send">
+    <!-- Chat Input Area -->
+    <footer class="chat-input-container p-3 border-top">
+        <form id="message-form" class="d-flex align-items-center">
+            <textarea name="content" class="form-control form-control-custom me-3" placeholder="پیام خود را بنویسید..." rows="1" required></textarea>
+            <button type="submit" class="btn btn-custom-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
                 <i class="bi bi-send-fill"></i>
             </button>
         </form>
     </footer>
+</div>
 
-    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const socket = io();
-            const currentUserId = document.body.dataset.currentUserId;
-            const otherUserId = document.body.dataset.otherUserId;
-            const messagesContainer = document.getElementById('chat-messages');
-            const messageForm = document.getElementById('message-form');
-            const messageInput = messageForm.querySelector('textarea[name="content"]');
+<style>
+    .chat-container {
+        max-width: 800px;
+        margin: 0 auto;
+        height: calc(100vh - 76px);
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+    }
+    
+    .chat-header {
+        background-color: var(--primary-color);
+        color: var(--white);
+    }
+    
+    .chat-header-avatar {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+    }
+    
+    .chat-messages-container {
+        background-color: var(--light-bg);
+    }
+    
+    .message {
+        display: flex;
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    .message.sent {
+        justify-content: flex-start; /* In RTL, sent messages go to left */
+    }
+    
+    .message.received {
+        justify-content: flex-end; /* In RTL, received messages go to right */
+    }
+    
+    .message-bubble {
+        max-width: 70%;
+        border-radius: 18px;
+        position: relative;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .message.sent .message-bubble {
+        background-color: var(--light-bg);
+        color: var(--text-dark);
+        border-top-right-radius: 5px;
+    }
+    
+    .message.received .message-bubble {
+        background-color: var(--primary-color);
+        color: var(--white);
+        border-top-left-radius: 5px;
+    }
+    
+    .message-info {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
+    
+    .message.received .message-info {
+        justify-content: flex-end;
+    }
+    
+    .message.received .message-info {
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .read-receipt {
+        margin-right: 5px;
+        font-size: 1rem;
+    }
+    
+    .system-message {
+        text-align: center;
+        margin: 1rem 0;
+        color: var(--text-light);
+        font-size: 0.9rem;
+        font-style: italic;
+    }
+    
+    .chat-input-container {
+        background-color: var(--white);
+    }
+    
+    .chat-input {
+        border-radius: 50px;
+        resize: none;
+        max-height: 100px;
+    }
+    
+    .chat-input:focus {
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .chat-container {
+            height: calc(100vh - 56px);
+            border-radius: 0;
+        }
+        
+        .message-bubble {
+            max-width: 85%;
+        }
+    }
+</style>
 
-            // اتصال به اتاق گفتگو
-            socket.emit('join_chat', { other_user_id: otherUserId });
+{% block scripts %}
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const socket = io();
+    const currentUserId = document.body.dataset.currentUserId;
+    const otherUserId = document.body.dataset.otherUserId;
+    const messagesContainer = document.getElementById('chat-messages');
+    const messageForm = document.getElementById('message-form');
+    const messageInput = messageForm.querySelector('textarea[name="content"]');
 
-            // گوش دادن به رویدادهای سرور
-            socket.on('new_message', function(data) {
-                addMessageToChat(data.sender_name, data.content, data.timestamp, data.sender_id, data.message_id);
-            });
+    // اتصال به اتاق گفتگو
+    socket.emit('join_chat', { other_user_id: otherUserId });
 
-            socket.on('status_message', function(data) {
-                addSystemMessageToChat(data.msg);
-            });
+    // گوش دادن به رویدادهای سرور
+    socket.on('new_message', function(data) {
+        addMessageToChat(data.sender_name, data.content, data.timestamp, data.sender_id, data.message_id);
+    });
 
-            // گوش دادن به رویداد خوانده شدن پیام
-            socket.on('message_read', function(data) {
-                const messageInfo = document.querySelector(`.message-info[data-message-id="${data.message_id}"]`);
-                if (messageInfo) {
-                    const checkIcon = messageInfo.querySelector('.read-receipt');
-                    if (checkIcon) {
-                        checkIcon.classList.remove('bi-check');
-                        checkIcon.classList.add('bi-check2-all', 'text-primary');
-                    }
-                }
-            });
+    socket.on('status_message', function(data) {
+        addSystemMessageToChat(data.msg);
+    });
 
-            // ارسال پیام از طریق فرم
-            messageForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const content = messageInput.value.trim();
-                if (content) {
-                    // ابتدا پیام را در صفحه خودمان نمایش می‌دهیم
-                    addMessageToChat('شما', content, new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }), currentUserId, null);
-                    // سپس آن را به سرور ارسال می‌کنیم
-                    socket.emit('send_message', {
-                        other_user_id: otherUserId,
-                        content: content
-                    });
-                    messageInput.value = '';
-                    messageInput.style.height = 'auto'; // ریست کردن ارتفاع textarea
-                }
-            });
-
-            // تابع برای اضافه کردن پیام به صفحه چت
-            function addMessageToChat(senderName, content, timestamp, senderId, messageId) {
-                const isSent = senderId == currentUserId;
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
-
-                const bubbleDiv = document.createElement('div');
-                bubbleDiv.className = 'message-bubble';
-                bubbleDiv.textContent = content;
-
-                const infoDiv = document.createElement('div');
-                infoDiv.className = 'message-info';
-                
-                // اگر پیام ارسال شده و آیدی دارد، تیک خوانده شدن را اضافه کن
-                if (isSent && messageId) {
-                    infoDiv.setAttribute('data-message-id', messageId);
-                    infoDiv.innerHTML = `${timestamp} <i class="bi bi-check read-receipt"></i>`;
-                } else {
-                    infoDiv.textContent = timestamp;
-                }
-
-                messageDiv.appendChild(bubbleDiv);
-                messageDiv.appendChild(infoDiv);
-                messagesContainer.appendChild(messageDiv);
-                scrollToBottom();
+    // گوش دادن به رویداد خوانده شدن پیام
+    socket.on('message_read', function(data) {
+        const messageInfo = document.querySelector(`.message-info[data-message-id="${data.message_id}"]`);
+        if (messageInfo) {
+            const checkIcon = messageInfo.querySelector('.read-receipt');
+            if (checkIcon) {
+                checkIcon.classList.remove('bi-check');
+                checkIcon.classList.add('bi-check2-all', 'text-primary');
             }
+        }
+    });
 
-            function addSystemMessageToChat(message) {
-                const systemDiv = document.createElement('div');
-                systemDiv.className = 'system-message';
-                systemDiv.textContent = message;
-                messagesContainer.appendChild(systemDiv);
-                scrollToBottom();
-            }
-            
-            function scrollToBottom() {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
+    // ارسال پیام از طریق فرم
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const content = messageInput.value.trim();
+        if (content) {
+            // ابتدا پیام را در صفحه خودمان نمایش می‌دهیم
+            addMessageToChat('شما', content, new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }), currentUserId, null);
+            // سپس آن را به سرور ارسال می‌کنیم
+            socket.emit('send_message', {
+                other_user_id: otherUserId,
+                content: content
+            });
+            messageInput.value = '';
+            messageInput.style.height = 'auto'; // ریست کردن ارتفاع textarea
+        }
+    });
 
-            // اسکرول به پایین در بارگذاری اولیه صفحه
-            scrollToBottom();
-        });
-    </script>
-</body>
+    // تابع برای اضافه کردن پیام به صفحه چت
+    function addMessageToChat(senderName, content, timestamp, senderId, messageId) {
+        const isSent = senderId == currentUserId;
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isSent ? 'sent' : 'received'} mb-3`;
+
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = 'message-bubble p-3';
+        bubbleDiv.textContent = content;
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'message-info small text-muted mt-1';
+        
+        // اگر پیام ارسال شده و آیدی دارد، تیک خوانده شدن را اضافه کن
+        if (isSent && messageId) {
+            infoDiv.setAttribute('data-message-id', messageId);
+            infoDiv.innerHTML = `${timestamp} <i class="bi bi-check read-receipt"></i>`;
+        } else {
+            infoDiv.textContent = timestamp;
+        }
+
+        messageDiv.appendChild(bubbleDiv);
+        messageDiv.appendChild(infoDiv);
+        messagesContainer.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    function addSystemMessageToChat(message) {
+        const systemDiv = document.createElement('div');
+        systemDiv.className = 'system-message';
+        systemDiv.textContent = message;
+        messagesContainer.appendChild(systemDiv);
+        scrollToBottom();
+    }
+    
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // اسکرول به پایین در بارگذاری اولیه صفحه
+    scrollToBottom();
+});
+</script>
+{% endblock %}
 {% endblock %}

@@ -7,67 +7,144 @@
         padding-top: 4rem;
         padding-bottom: 4rem;
     }
+    
     .auth-card {
-        background-color: white;
-        border-radius: 20px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        background-color: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
         padding: 2.5rem;
         margin-bottom: 2rem;
-        border-top: 5px solid var(--bs-primary);
+        border-top: 4px solid var(--primary-color);
+        transition: var(--transition);
     }
+    
+    .auth-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+    
     .auth-title {
         font-size: 1.8rem;
         font-weight: 700;
         text-align: center;
         margin-bottom: 2rem;
-        color: var(--bs-primary);
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
+    
+    .auth-title i {
+        margin-left: 0.5rem;
+        font-size: 1.5rem;
+    }
+    
     .form-control, .form-select {
-        border-radius: 12px;
+        border-radius: var(--radius);
         padding: 0.75rem 1rem;
-        border: 2px solid #e2e8f0;
-        transition: all 0.3s ease;
+        border: 1px solid var(--border-color);
+        transition: var(--transition);
+        background-color: var(--light-bg);
     }
+    
     .form-control:focus, .form-select:focus {
-        border-color: var(--bs-primary);
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        background-color: var(--white);
     }
+    
     .btn-auth {
         padding: 0.75rem;
         font-size: 1.1rem;
         font-weight: 600;
         border-radius: 50px;
-        transition: all 0.3s ease;
+        transition: var(--transition);
+        border: none;
     }
+    
+    .btn-auth:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    
     .divider {
         display: flex;
         align-items: center;
         text-align: center;
         margin: 2rem 0;
     }
+    
     .divider::before, .divider::after {
         content: '';
         flex: 1;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid var(--border-color);
     }
+    
     .divider span {
         padding: 0 1rem;
-        color: #64748b;
+        color: var(--text-light);
         font-weight: 500;
+        background-color: var(--light-bg);
     }
+    
     .password-container {
         position: relative;
     }
+    
     .password-icon {
         position: absolute;
         left: 1rem;
         top: 50%;
         transform: translateY(-50%);
-        color: #64748b;
+        color: var(--text-light);
         cursor: pointer;
+        transition: var(--transition);
     }
+    
+    .password-icon:hover {
+        color: var(--primary-color);
+    }
+    
     .password-input {
         padding-left: 3rem !important;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    /* Animation for form elements */
+    .auth-card > * {
+        animation: fadeIn 0.5s ease-out;
+    }
+    
+    .auth-card > *:nth-child(1) { animation-delay: 0.1s; }
+    .auth-card > *:nth-child(2) { animation-delay: 0.2s; }
+    .auth-card > *:nth-child(3) { animation-delay: 0.3s; }
+    .auth-card > *:nth-child(4) { animation-delay: 0.4s; }
+    .auth-card > *:nth-child(5) { animation-delay: 0.5s; }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .auth-card {
+            padding: 1.5rem;
+        }
+        
+        .auth-title {
+            font-size: 1.5rem;
+        }
     }
 </style>
 {% endblock %}
@@ -84,6 +161,19 @@
                     <i class="bi bi-person-plus-fill"></i>
                     ایجاد حساب کاربری جدید
                 </h2>
+                
+                <!-- Flash Messages for Registration -->
+                {% with messages = get_flashed_messages(with_categories=true, category_filter=['register']) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div class="alert alert-custom alert-custom-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+                
                 <form method="POST" action="{{ url_for('register') }}">
                     {{ form.hidden_tag() }}
                     <div class="mb-3">
@@ -127,18 +217,35 @@
                             <div class="invalid-feedback">{{ error }}</div>
                         {% endfor %}
                     </div>
-                    {{ form.submit(class="btn btn-primary w-100 btn-auth") }}
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-custom-primary btn-auth") }}
+                    </div>
                 </form>
             </div>
+            
             <div class="divider">
                 <span>یا</span>
             </div>
+            
             <!-- Login Form -->
             <div class="auth-card">
                 <h2 class="auth-title">
                     <i class="bi bi-box-arrow-in-right"></i>
                     ورود به حساب کاربری
                 </h2>
+                
+                <!-- Flash Messages for Login -->
+                {% with messages = get_flashed_messages(with_categories=true, category_filter=['login']) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div class="alert alert-custom alert-custom-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+                
                 <form method="POST" action="{{ url_for('login') }}">
                     {{ login_form.hidden_tag() }}
                     <div class="mb-3">
@@ -158,11 +265,13 @@
                             <div class="invalid-feedback">{{ error }}</div>
                         {% endfor %}
                     </div>
-                    <div class="mb-3 form-check">
+                    <div class="mb-4 form-check">
                         {{ login_form.remember_me(class="form-check-input") }}
                         {{ login_form.remember_me.label(class="form-check-label") }}
                     </div>
-                    {{ login_form.submit(class="btn btn-success w-100 btn-auth") }}
+                    <div class="d-grid">
+                        {{ login_form.submit(class="btn btn-custom-secondary btn-auth") }}
+                    </div>
                 </form>
             </div>
         </div>
@@ -185,9 +294,24 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
+    
     setupPasswordToggle('passwordToggle', 'password');
     setupPasswordToggle('confirmPasswordToggle', 'confirm_password');
     setupPasswordToggle('loginPasswordToggle', 'login_password');
+    
+    // Password confirmation validation
+    const password = document.getElementById('password');
+    const confirm_password = document.getElementById('confirm_password');
+    
+    if (password && confirm_password) {
+        confirm_password.addEventListener('input', function() {
+            if (password.value !== confirm_password.value) {
+                confirm_password.setCustomValidity('رمز عبور و تکرار آن باید یکسان باشند');
+            } else {
+                confirm_password.setCustomValidity('');
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
