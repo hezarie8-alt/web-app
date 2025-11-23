@@ -25,12 +25,16 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
+                    <!-- لینک خانه همیشه نمایش داده می‌شود -->
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="/">
                             <i class="bi bi-house-fill ms-1"></i>
                             خانه
                         </a>
                     </li>
+
+                    <!-- فقط برای کاربران مهمان نمایش داده می‌شود -->
+                    {% if not session.get('current_user_id') %}
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}" href="/register">
                             <i class="bi bi-person-plus-fill ms-1"></i>
@@ -43,6 +47,10 @@
                             ورود
                         </a>
                     </li>
+                    {% endif %}
+
+                    <!-- فقط برای کاربران وارد شده نمایش داده می‌شود -->
+                    {% if session.get('current_user_id') %}
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'match' %}active{% endif %}" href="/match">
                             <i class="bi bi-search ms-1"></i>
@@ -50,11 +58,13 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}" href="/profile">
-                            <i class="bi bi-person-circle ms-1"></i>
-                            پروفایل من
+                        <a class="nav-link {% if request.endpoint == 'inbox' %}active{% endif %}" href="{{ url_for('inbox', user_id=session['current_user_id']) }}">
+                            <i class="bi bi-chat-dots ms-1"></i>
+                            گفتگوها
                         </a>
                     </li>
+                    {% endif %}
+
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="/about">
                             <i class="bi bi-info-circle-fill ms-1"></i>
@@ -62,14 +72,45 @@
                         </a>
                     </li>
                 </ul>
+
+                <!-- منوی کشویی پروفایل فقط برای کاربران وارد شده -->
+                {% if session.get('current_user_id') %}
+                {% set current_user = User.query.get(session['current_user_id']) %}
+                <div class="dropdown">
+                    <a class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <!-- بهبود: اضافه شدن ویژگی title برای دسترسی‌پذیری بهتر -->
+                        <img src="https://ui-avatars.com/api/?name={{ current_user.name|urlencode }}&background=06b6d4&color=fff&size=32" alt="{{ current_user.name }}" title="{{ current_user.name }}" class="rounded-circle me-2" width="32" height="32">
+                        {{ current_user.name }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown" style="left: auto; right: 0;">
+                        <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="bi bi-person ms-2"></i> پروفایل من</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-left ms-2"></i> خروج</a></li>
+                    </ul>
+                </div>
+                {% endif %}
             </div>
         </div>
     </nav>
 
     <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="container mt-3">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show text-center" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        
         {% block content %}{% endblock %}
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     {% block scripts %}{% endblock %}
 </body>
+</html>
