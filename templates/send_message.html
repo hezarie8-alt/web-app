@@ -1,93 +1,369 @@
 {% extends "base.html" %}
 
-{% block title %}📬 ارسال پیام{% endblock %}
+{% block title %}💬 چت با {{ other_user.name }}{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card-custom message-form p-4 p-md-5">
-                <h2 class="page-title text-center mb-4">
-                    <i class="bi bi-envelope ms-2"></i>ارسال پیام
-                </h2>
-                
-                <div class="recipient-info p-3 mb-4">
-                    <div class="d-flex align-items-center">
-                        <img src="https://ui-avatars.com/api/?name={{ receiver.name|urlencode }}&background=10B981&color=fff&size=128" alt="{{ receiver.name }}" class="recipient-avatar rounded-circle">
-                        <div class="recipient-details ms-3">
-                            <h4 class="mb-1">{{ receiver.name }}</h4>
-                            <p class="mb-0 text-muted">در حال ارسال پیام به این کاربر</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <form method="POST">
-                    <div class="mb-4">
-                        <label for="message" class="form-label fw-semibold">
-                            <i class="bi bi-chat-dots ms-2"></i>متن پیام
-                        </label>
-                        <textarea name="message" id="message" class="form-control form-control-custom message-textarea" rows="6" placeholder="پیام خود را اینجا بنویسید..." required></textarea>
-                    </div>
-                    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-custom-secondary">
-                            <i class="bi bi-send ms-2"></i>ارسال پیام
-                        </button>
-                    </div>
-                </form>
+<div class="telegram-container">
+    <!-- Chat Header -->
+    <header class="telegram-header">
+        <a href="{{ url_for('inbox', user_id=session['current_user_id']) }}" class="back-button">
+            <i class="bi bi-arrow-right"></i>
+        </a>
+        <div class="header-info">
+            <img src="https://ui-avatars.com/api/?name={{ other_user.name|urlencode }}&background=0088CC&color=fff&size=64" alt="{{ other_user.name }}" class="header-avatar">
+            <div class="header-details">
+                <h3 class="header-name">{{ other_user.name }}</h3>
+                <p class="header-status">{{ other_user.major }} - {{ other_user.grade }}</p>
             </div>
         </div>
-    </div>
+        <div class="header-actions">
+            <button class="action-button">
+                <i class="bi bi-search"></i>
+            </button>
+            <button class="action-button">
+                <i class="bi bi-three-dots-vertical"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Chat Messages Area -->
+    <main class="telegram-messages" id="chat-messages">
+        {% for message in messages %}
+            <div class="message {{ 'sent' if message.sender_id == session['current_user_id'] else 'received' }}">
+                {% if message.sender_id == session['current_user_id'] %}
+                    <div class="message-bubble sent-bubble">
+                        <div class="message-text">{{ message.content }}</div>
+                        <div class="message-time">{{ message.timestamp.strftime('%H:%M') }}</div>
+                    </div>
+                {% else %}
+                    <div class="message-bubble received-bubble">
+                        <div class="message-text">{{ message.content }}</div>
+                        <div class="message-time">{{ message.timestamp.strftime('%H:%M') }}</div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </main>
+
+    <!-- Chat Input Area -->
+    <footer class="telegram-input">
+        <div class="input-container">
+            <button class="attach-button">
+                <i class="bi bi-paperclip"></i>
+            </button>
+            <form method="POST" action="{{ url_for('send_chat_message', other_user_id=other_user.id) }}" id="message-form">
+                {{ form.hidden_tag() }}
+                <div class="input-wrapper">
+                    <input type="text" name="content" class="message-input" id="message-input" placeholder="پیام..." autocomplete="off">
+                    <button type="button" class="emoji-button">
+                        <i class="bi bi-emoji-smile"></i>
+                    </button>
+                </div>
+            </form>
+            <button type="submit" form="message-form" class="send-button">
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </div>
+    </footer>
 </div>
 
 <style>
-    .message-form {
-        max-width: 700px;
-        margin: 0 auto;
+    :root {
+        --telegram-blue: #0088CC;
+        --telegram-dark-blue: #005B96;
+        --telegram-light-blue: #54A3E8;
+        --telegram-gray: #ECECEC;
+        --telegram-light-gray: #F5F5F5;
+        --telegram-dark-gray: #8B8B8B;
+        --telegram-white: #FFFFFF;
+        --telegram-green: #34C759;
+        --telegram-yellow: #FFD700;
+        --telegram-red: #FF3B30;
     }
-    
-    .recipient-info {
-        background-color: rgba(16, 185, 129, 0.1);
-        border-radius: var(--radius);
-        border-right: 4px solid var(--secondary-color);
+
+    body {
+        font-family: 'Vazirmatn', sans-serif;
+        background-color: var(--telegram-light-gray);
+        color: #000000;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
     }
-    
-    .recipient-avatar {
-        width: 70px;
-        height: 70px;
+
+    .telegram-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        max-width: 100%;
+        background-color: var(--telegram-light-gray);
+    }
+
+    /* Header Styles */
+    .telegram-header {
+        background-color: var(--telegram-blue);
+        color: var(--telegram-white);
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        z-index: 10;
+    }
+
+    .back-button {
+        color: var(--telegram-white);
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        margin-right: 1rem;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .back-button:hover {
+        transform: scale(1.1);
+    }
+
+    .header-info {
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+    }
+
+    .header-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 0.75rem;
         object-fit: cover;
-        box-shadow: var(--shadow-md);
     }
-    
-    .message-textarea {
-        min-height: 150px;
-        resize: vertical;
+
+    .header-details {
+        display: flex;
+        flex-direction: column;
     }
-    
+
+    .header-name {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .header-status {
+        font-size: 0.8rem;
+        opacity: 0.8;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-button {
+        background: none;
+        border: none;
+        color: var(--telegram-white);
+        font-size: 1.2rem;
+        padding: 0.5rem;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .action-button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Messages Area Styles */
+    .telegram-messages {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1rem 0;
+        background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c0 1.1.9 2 2 2h9c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-4l-1.41-1.41L11 7.59V18z' fill='%23f0f0f0' fill-opacity='0.05'/%3E%3C/svg%3E");
+    }
+
+    .message {
+        display: flex;
+        margin-bottom: 0.5rem;
+        padding: 0 1rem;
+    }
+
+    .message.sent {
+        justify-content: flex-end;
+    }
+
+    .message.received {
+        justify-content: flex-start;
+    }
+
+    .message-bubble {
+        max-width: 70%;
+        border-radius: 1.25rem;
+        padding: 0.5rem 0.75rem;
+        word-wrap: break-word;
+        position: relative;
+    }
+
+    .sent-bubble {
+        background-color: var(--telegram-light-blue);
+        color: var(--telegram-white);
+        border-top-right-radius: 0.25rem;
+    }
+
+    .received-bubble {
+        background-color: var(--telegram-white);
+        color: var(--telegram-dark-gray);
+        border-top-left-radius: 0.25rem;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    }
+
+    .message-text {
+        font-size: 1rem;
+        line-height: 1.4;
+        margin: 0;
+    }
+
+    .message-time {
+        font-size: 0.75rem;
+        color: var(--telegram-dark-gray);
+        margin-top: 0.25rem;
+        text-align: right;
+    }
+
+    .sent-bubble .message-time {
+        color: var(--telegram-dark-gray);
+        opacity: 0.7;
+    }
+
+    /* Input Area Styles */
+    .telegram-input {
+        background-color: var(--telegram-white);
+        border-top: 1px solid var(--telegram-gray);
+        padding: 0.5rem 1rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-container {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        gap: 0.5rem;
+    }
+
+    .attach-button {
+        background: none;
+        border: none;
+        color: var(--telegram-dark-gray);
+        font-size: 1.5rem;
+        padding: 0.5rem;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .attach-button:hover {
+        color: var(--telegram-blue);
+    }
+
     .message-form {
-        animation: fadeIn 0.5s ease-out;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
     }
-    
-    .recipient-info {
-        animation: fadeIn 0.5s ease-out;
-        animation-delay: 0.1s;
+
+    .input-wrapper {
+        position: relative;
+        flex-grow: 1;
+        background-color: var(--telegram-gray);
+        border-radius: 1.5rem;
+        display: flex;
+        align-items: center;
     }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+
+    .message-input {
+        flex-grow: 1;
+        background: none;
+        border: none;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        color: var(--telegram-dark-gray);
+        outline: none;
     }
-    
-    /* Responsive adjustments */
+
+    .message-input::placeholder {
+        color: var(--telegram-dark-gray);
+        opacity: 0.7;
+    }
+
+    .emoji-button {
+        background: none;
+        border: none;
+        color: var(--telegram-dark-gray);
+        font-size: 1.2rem;
+        padding: 0.5rem;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .emoji-button:hover {
+        color: var(--telegram-blue);
+    }
+
+    .send-button {
+        background-color: var(--telegram-blue);
+        color: var(--telegram-white);
+        border: none;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .send-button:hover {
+        background-color: var(--telegram-dark-blue);
+    }
+
+    /* Scrollbar Styling */
+    .telegram-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .telegram-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .telegram-messages::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+    }
+
+    .telegram-messages::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    /* Responsive Design */
     @media (max-width: 768px) {
-        .recipient-info .d-flex {
-            flex-direction: column;
-            text-align: center;
+        .message-bubble {
+            max-width: 85%;
         }
         
-        .recipient-details {
-            margin-top: 1rem;
-            margin-right: 0;
+        .header-name {
+            font-size: 0.9rem;
+        }
+        
+        .header-status {
+            font-size: 0.7rem;
         }
     }
 </style>
@@ -95,21 +371,83 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const messageTextarea = document.getElementById('message');
-    const messageForm = document.querySelector('form');
+    const socket = io();
+    const currentUserId = document.body.dataset.currentUserId;
+    const otherUserId = document.body.dataset.otherUserId;
+    const messagesContainer = document.getElementById('chat-messages');
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
     
-    // Auto-resize textarea as user types
-    messageTextarea.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
+    // Join chat room
+    socket.emit('join_chat', { other_user_id: otherUserId });
+
+    // Listen for new messages
+    socket.on('new_message', function(data) {
+        addMessageToChat(data.sender_name, data.content, data.timestamp, data.sender_id, data.message_id);
     });
+
+    // Listen for status messages
+    socket.on('status_message', function(data) {
+        addSystemMessageToChat(data.msg);
+    });
+
+    // Handle form submission
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const content = messageInput.value.trim();
+        if (content) {
+            // Add message to our own chat immediately
+            addMessageToChat('شما', content, new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }), currentUserId, null);
+            
+            // Send message to server
+            socket.emit('send_message', {
+                other_user_id: otherUserId,
+                content: content
+            });
+            
+            // Clear input
+            messageInput.value = '';
+        }
+    });
+
+    // Function to add a message to the chat
+    function addMessageToChat(senderName, content, timestamp, senderId, messageId) {
+        const isSent = senderId == currentUserId;
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = `message-bubble ${isSent ? 'sent-bubble' : 'received-bubble'}`;
+        
+        const textDiv = document.createElement('div');
+        textDiv.className = 'message-text';
+        textDiv.textContent = content;
+
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'message-time';
+        timeDiv.textContent = timestamp;
+
+        bubbleDiv.appendChild(textDiv);
+        bubbleDiv.appendChild(timeDiv);
+        messageDiv.appendChild(bubbleDiv);
+        messagesContainer.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    function addSystemMessageToChat(message) {
+        const systemDiv = document.createElement('div');
+        systemDiv.className = 'system-message';
+        systemDiv.textContent = message;
+        messagesContainer.appendChild(systemDiv);
+        scrollToBottom();
+    }
     
-    // Add loading state to submit button
-    messageForm.addEventListener('submit', function() {
-        const submitBtn = this.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="bi bi-hourglass-split ms-2"></i>در حال ارسال...';
-    });
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Auto-scroll to bottom on page load
+    scrollToBottom();
 });
 </script>
 {% endblock %}

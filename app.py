@@ -8,6 +8,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, BooleanField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from flask_socketio import SocketIO, emit, join_room, leave_room
+from datetime import datetime # برای فرمت timestamp در Socket.IO
 
 # --- تنظیمات اولیه برنامه ---
 app = Flask(__name__)
@@ -87,6 +88,11 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField('مرا به خاطر بسپار')
     submit = SubmitField('ورود')
 
+# --- مشکل 4: فرم MessageForm اضافه شد ---
+class MessageForm(FlaskForm):
+    content = TextAreaField('متن پیام', validators=[DataRequired(), Length(min=1, max=1000)])
+    submit = SubmitField('ارسال پیام')
+
 class UpdateProfileForm(FlaskForm):
     name = StringField('نام کاربری', validators=[DataRequired(), Length(min=4, max=100)])
     major = SelectField('رشته تحصیلی', choices=MAJOR_CHOICES)
@@ -135,9 +141,9 @@ def register():
         new_user = User(name=form.name.data, major=form.major.data, grade=form.grade.data, password_hash=hashed_password)
         db.session.add(new_user)
         db.session.commit()
-        flash('ثبت‌نام با موفقیت انجام شد. به همکلاسی یاب خوش آمدید!', 'success')
-        session['current_user_id'] = new_user.id
-        return redirect(url_for('match'))
+        flash('ثبت‌نام با موفقیت انجام شد. لطفاً وارد شوید.', 'success')
+        # --- مشکل 10: کاربر پس از ثبت‌نام به صفحه ورود هدایت می‌شود ---
+        return redirect(url_for('show_auth_page'))
     return render_template('register.html', form=form, login_form=login_form)
 
 @app.route('/login', methods=['POST'])
@@ -171,21 +177,29 @@ def match():
         users = query.all()
     return render_template('match.html', users=users, current_user_id=current_user_id)
 
-@app.route('/profile')
+# --- مشکل 6: مسیر پروفایل با user_id و بررسی امنیتی ---
+@app.route('/profile/<int:user_id>')
 @login_required
-def profile():
+def profile(user_id):
     current_user_id = session.get('current_user_id')
-    user = User.query.get_or_404(current_user_id)
+    if current_user_id != user_id:
+        abort(403)  # هدایت به پروفایل خودشان یا نمایش خطا
+    
+    user = User.query.get_or_404(user_id)
     update_profile_form = UpdateProfileForm(obj=user, original_username=user.name)
     update_password_form = UpdatePasswordForm()
     delete_account_form = DeleteAccountForm()
     return render_template('profile.html', user=user, update_profile_form=update_profile_form, update_password_form=update_password_form, delete_account_form=delete_account_form)
 
-@app.route('/update_profile', methods=['POST'])
+# --- مشکل 7: مسیر بروزرسانی پروفایل با user_id و بررسی امنیتی ---
+@app.route('/update_profile/<int:user_id>', methods=['POST'])
 @login_required
-def update_profile():
+def update_profile(user_id):
     current_user_id = session.get('current_user_id')
-    user = User.query.get_or_404(current_user_id)
+    if current_user_id != user_id:
+        abort(403)
+
+    user = User.query.get_or_404(user_id)
     form = UpdateProfileForm(obj=user, original_username=user.name)
     if form.validate_on_submit():
         user.name = form.name.data
@@ -193,7 +207,7 @@ def update_profile():
         user.grade = form.grade.data
         db.session.commit()
         flash('پروفایل شما با موفقیت بروزرسانی شد.', 'success')
-    return redirect(url_for('profile'))
+    return redirect(url_for('profile', user_id=user_id))
 
 @app.route('/update_password', methods=['POST'])
 @login_required
@@ -208,13 +222,17 @@ def update_password():
             flash('رمز عبور شما با موفقیت تغییر کرد.', 'success')
         else:
             flash('رمز عبور فعلی اشتباه است.', 'error')
-    return redirect(url_for('profile'))
+    return redirect(url_for('profile', user_id=current_user_id))
 
-@app.route('/delete_account', methods=['POST'])
+# --- مشکل 8: مسیر حذف حساب با user_id و بررسی امنیتی ---
+@app.route('/delete_account/<int:user_id>', methods=['POST'])
 @login_required
-def delete_account():
+def delete_account(user_id):
     current_user_id = session.get('current_user_id')
-    user_to_delete = User.query.get_or_404(current_user_id)
+    if current_user_id != user_id:
+        abort(403)
+        
+    user_to_delete = User.query.get_or_404(user_id)
     db.session.delete(user_to_delete)
     db.session.commit()
     session.pop('current_user_id', None)
@@ -229,15 +247,37 @@ def chat(other_user_id):
         return redirect(url_for('inbox', user_id=current_user_id))
 
     other_user = User.query.get_or_404(other_user_id)
+    
+    # --- مشکل 2: منطق خواندن پیام‌ها در مسیر چت پیاده‌سازی شد (قبلاً وجود داشت) ---
     unread_messages = Message.query.filter(and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id, Message.read_at.is_(None))).all()
     for msg in unread_messages:
         msg.read_at = db.func.now()
-        room_id = f"chat-{min(msg.sender_id, msg.receiver_id)}-{max(msg.sender_id, msg.receiver_id)}"
-        socketio.emit('message_read', {'message_id': msg.id}, room=room_id)
+        # اطلاع‌رسانی به فرانت برای تغییر وضعیت پیام (اختیاری)
+        # room_id = f"chat-{min(msg.sender_id, msg.receiver_id)}-{max(msg.sender_id, msg.receiver_id)}"
+        # socketio.emit('message_read', {'message_id': msg.id}, room=room_id)
     db.session.commit()
 
     messages = Message.query.filter(or_(and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id), and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id))).order_by(Message.timestamp.asc()).all()
-    return render_template('chat.html', other_user=other_user, messages=messages)
+    
+    # ارسال فرم به قالب برای استفاده در ارسال پیام (fallback)
+    message_form = MessageForm()
+    
+    return render_template('chat.html', other_user=other_user, messages=messages, message_form=message_form)
+
+# --- مشکل 1: اضافه شدن مسیر جداگانه برای ارسال پیام (Fallback) ---
+@app.route('/send_message/<int:other_user_id>', methods=['POST'])
+@login_required
+def send_message(other_user_id):
+    current_user_id = session.get('current_user_id')
+    form = MessageForm()
+    if form.validate_on_submit():
+        content = form.content.data
+        if content:
+            msg = Message(sender_id=current_user_id, receiver_id=other_user_id, content=content)
+            db.session.add(msg)
+            db.session.commit()
+            flash('پیام شما ارسال شد.', 'success')
+    return redirect(url_for('chat', other_user_id=other_user_id))
 
 @app.route('/inbox/<int:user_id>')
 @login_required
@@ -246,7 +286,7 @@ def inbox(user_id):
     if current_user_id != user_id:
         abort(403)
 
-    # یافتن تمام کاربرانی که با آن‌ها گفتگو داشته‌ایم
+    # --- مشکل 3: کوئری بهینه برای یافتن گفتگوها (قبلاً به درستی پیاده‌سازی شده بود) ---
     sent_to_users = db.session.query(Message.receiver_id).filter(Message.sender_id == current_user_id).distinct()
     received_from_users = db.session.query(Message.sender_id).filter(Message.receiver_id == current_user_id).distinct()
     other_users_ids = sent_to_users.union(received_from_users).all()
@@ -254,7 +294,6 @@ def inbox(user_id):
 
     conversations = []
     for other_user_id in other_users_ids:
-        # یافتن آخرین پیام در این گفتگو
         last_message = Message.query.filter(or_(and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id), and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id))).order_by(Message.timestamp.desc()).first()
         if last_message:
             other_user = User.query.get(other_user_id)
@@ -289,14 +328,15 @@ def handle_join_chat(data):
     user = User.query.get(current_user_id)
     emit('status_message', {'msg': f"{user.name} به گفتگو پیوست.", 'type': 'join'}, room=room_id, include_self=False)
 
+# --- مشکل 5: تابع Socket.IO هماهنگ با فرانت (قبلاً به درستی پیاده‌سازی شده بود) ---
 @socketio.on('send_message')
 def handle_send_message(data):
     current_user_id = session.get('current_user_id')
-    if not current_user_id: return # جلوگیری از کرش اگر سشن از بین رفته باشد
+    if not current_user_id: return
 
     other_user_id = data.get('other_user_id')
     content = data.get('content')
-    if not other_user_id or not content: return # جلوگیری از کرش اگر داده نامعتبر بود
+    if not other_user_id or not content: return
 
     room_id = f"chat-{min(current_user_id, other_user_id)}-{max(current_user_id, other_user_id)}"
     msg = Message(sender_id=current_user_id, receiver_id=other_user_id, content=content)
@@ -305,22 +345,18 @@ def handle_send_message(data):
     
     user = User.query.get(current_user_id)
     emit('new_message', {
-        'sender_name': user.name, 'content': content, 'timestamp': msg.timestamp.strftime('%H:%M'),
-        'sender_id': current_user_id, 'message_id': msg.id
+        'sender_name': user.name,
+        'content': content,
+        'timestamp': msg.timestamp.strftime('%H:%M'),
+        'sender_id': current_user_id,
+        'message_id': msg.id
     }, room=room_id)
 
-@socketio.on('mark_as_read')
-def handle_mark_as_read(data):
-    current_user_id = session.get('current_user_id')
-    if not current_user_id: return
-
-    message_id = data.get('message_id')
-    message = Message.query.get(message_id)
-    if message and message.receiver_id == current_user_id and not message.read_at:
-        message.read_at = db.func.now()
-        db.session.commit()
-        room_id = f"chat-{min(message.sender_id, message.receiver_id)}-{max(message.sender_id, message.receiver_id)}"
-        emit('message_read', {'message_id': message.id}, room=room_id)
+# --- مشکل 2: هندلر غیرضروری mark_as_read حذف شد ---
+# @socketio.on('mark_as_read')
+# def handle_mark_as_read(data):
+#     # این هندلر حذف شد چون منطق آن به مسیر /chat منتقل شد
+#     pass
 
 # --- اجرای برنامه ---
 if __name__ == '__main__':

@@ -2,7 +2,7 @@
 
 {% block head %}
 <style>
-    /* Custom styles for the registration/login page */
+    /* Custom styles for registration/login page */
     .auth-container {
         padding-top: 4rem;
         padding-bottom: 4rem;
@@ -16,11 +16,53 @@
         margin-bottom: 2rem;
         border-top: 4px solid var(--primary-color);
         transition: var(--transition);
+        position: relative;
+        overflow: hidden;
     }
     
     .auth-card:hover {
         transform: translateY(-5px);
         box-shadow: var(--shadow-lg);
+    }
+    
+    .auth-tabs {
+        display: flex;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+        position: relative;
+    }
+    
+    .auth-tab {
+        flex: 1;
+        padding: 1rem;
+        text-align: center;
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-light);
+        cursor: pointer;
+        transition: var(--transition);
+        position: relative;
+    }
+    
+    .auth-tab.active {
+        color: var(--primary-color);
+    }
+    
+    .auth-tab.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background-color: var(--primary-color);
+        border-radius: 3px 3px 0 0;
+    }
+    
+    .auth-tab:hover {
+        color: var(--primary-color);
     }
     
     .auth-title {
@@ -50,6 +92,7 @@
     .form-control:focus, .form-select:focus {
         border-color: var(--primary-color);
         box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        outline: none;
         background-color: var(--white);
     }
     
@@ -67,24 +110,24 @@
         box-shadow: var(--shadow-md);
     }
     
-    .divider {
-        display: flex;
-        align-items: center;
-        text-align: center;
-        margin: 2rem 0;
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: var(--white);
     }
     
-    .divider::before, .divider::after {
-        content: '';
-        flex: 1;
-        border-bottom: 1px solid var(--border-color);
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        color: var(--white);
     }
     
-    .divider span {
-        padding: 0 1rem;
-        color: var(--text-light);
-        font-weight: 500;
-        background-color: var(--light-bg);
+    .btn-secondary {
+        background-color: var(--secondary-color);
+        color: var(--white);
+    }
+    
+    .btn-secondary:hover {
+        background-color: var(--secondary-dark);
+        color: var(--white);
     }
     
     .password-container {
@@ -118,6 +161,24 @@
     .form-check-input:checked {
         background-color: var(--primary-color);
         border-color: var(--primary-color);
+    }
+    
+    .already-registered {
+        text-align: center;
+        margin-top: 1rem;
+        color: var(--text-light);
+    }
+    
+    .already-registered a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+    
+    .already-registered a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
     }
     
     /* Animation for form elements */
@@ -155,133 +216,169 @@
 <div class="container auth-container">
     <div class="row justify-content-center">
         <div class="col-lg-6">
-            <!-- Registration Form -->
             <div class="auth-card">
-                <h2 class="auth-title">
-                    <i class="bi bi-person-plus-fill"></i>
-                    ایجاد حساب کاربری جدید
-                </h2>
+                <!-- Tab Navigation -->
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="registerTab" onclick="switchTab('register')">
+                        <i class="bi bi-person-plus ms-2"></i>ثبت نام
+                    </button>
+                    <button class="auth-tab" id="loginTab" onclick="switchTab('login')">
+                        <i class="bi bi-box-arrow-in-right ms-2"></i>ورود
+                    </button>
+                </div>
                 
-                <!-- Flash Messages for Registration -->
-                {% with messages = get_flashed_messages(with_categories=true, category_filter=['register']) %}
-                  {% if messages %}
-                    {% for category, message in messages %}
-                      <div class="alert alert-custom alert-custom-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                      </div>
-                    {% endfor %}
-                  {% endif %}
-                {% endwith %}
-                
-                <form method="POST" action="{{ url_for('register') }}">
-                    {{ form.hidden_tag() }}
-                    <div class="mb-3">
-                        {{ form.name.label(class="form-label") }}
-                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="نام و نام خانوادگی") }}
-                        {% for error in form.name.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
+                <!-- Registration Form -->
+                <div id="registerForm" class="auth-form">
+                    <h2 class="auth-title">
+                        <i class="bi bi-person-plus-fill"></i>
+                        ایجاد حساب کاربری جدید
+                    </h2>
+                    
+                    <!-- Flash Messages for Registration -->
+                    {% with messages = get_flashed_messages(with_categories=true, category_filter=['register']) %}
+                      {% if messages %}
+                        {% for category, message in messages %}
+                          <div class="alert alert-custom alert-custom-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                          </div>
                         {% endfor %}
-                    </div>
-                    <div class="mb-3">
-                        {{ form.major.label(class="form-label") }}
-                        {{ form.major(class="form-select" + (" is-invalid" if form.major.errors else "")) }}
-                        {% for error in form.major.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    <div class="mb-3">
-                        {{ form.grade.label(class="form-label") }}
-                        {{ form.grade(class="form-select" + (" is-invalid" if form.grade.errors else "")) }}
-                        {% for error in form.grade.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    <div class="mb-3">
-                        {{ form.password.label(class="form-label") }}
-                        <div class="password-container">
-                            {{ form.password(class="form-control password-input", id="password") }}
-                            <i class="bi bi-eye-slash password-icon" id="passwordToggle"></i>
+                      {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST" action="{{ url_for('register') }}">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="نام و نام خانوادگی") }}
+                            {% for error in form.name.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
                         </div>
-                        {% for error in form.password.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    <div class="mb-4">
-                        {{ form.confirm_password.label(class="form-label") }}
-                        <div class="password-container">
-                            {{ form.confirm_password(class="form-control password-input", id="confirm_password") }}
-                            <i class="bi bi-eye-slash password-icon" id="confirmPasswordToggle"></i>
+                        <div class="mb-3">
+                            {{ form.major.label(class="form-label") }}
+                            {{ form.major(class="form-select" + (" is-invalid" if form.major.errors else "")) }}
+                            {% for error in form.major.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
                         </div>
-                        {% for error in form.confirm_password.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    <div class="d-grid">
-                        {{ form.submit(class="btn btn-custom-primary btn-auth") }}
-                    </div>
-                </form>
-            </div>
-            
-            <div class="divider">
-                <span>یا</span>
-            </div>
-            
-            <!-- Login Form -->
-            <div class="auth-card">
-                <h2 class="auth-title">
-                    <i class="bi bi-box-arrow-in-right"></i>
-                    ورود به حساب کاربری
-                </h2>
-                
-                <!-- Flash Messages for Login -->
-                {% with messages = get_flashed_messages(with_categories=true, category_filter=['login']) %}
-                  {% if messages %}
-                    {% for category, message in messages %}
-                      <div class="alert alert-custom alert-custom-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                      </div>
-                    {% endfor %}
-                  {% endif %}
-                {% endwith %}
-                
-                <form method="POST" action="{{ url_for('login') }}">
-                    {{ login_form.hidden_tag() }}
-                    <div class="mb-3">
-                        {{ login_form.username.label(class="form-label") }}
-                        {{ login_form.username(class="form-control" + (" is-invalid" if login_form.username.errors else ""), placeholder="نام کاربری یا ایمیل") }}
-                        {% for error in login_form.username.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    <div class="mb-3">
-                        {{ login_form.password.label(class="form-label") }}
-                        <div class="password-container">
-                            {{ login_form.password(class="form-control password-input", id="login_password") }}
-                            <i class="bi bi-eye-slash password-icon" id="loginPasswordToggle"></i>
+                        <div class="mb-3">
+                            {{ form.grade.label(class="form-label") }}
+                            {{ form.grade(class="form-select" + (" is-invalid" if form.grade.errors else "")) }}
+                            {% for error in form.grade.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
                         </div>
-                        {% for error in login_form.password.errors %}
-                            <div class="invalid-feedback">{{ error }}</div>
+                        <div class="mb-3">
+                            {{ form.password.label(class="form-label") }}
+                            <div class="password-container">
+                                {{ form.password(class="form-control password-input", id="password") }}
+                                <i class="bi bi-eye-slash password-icon" id="passwordToggle"></i>
+                            </div>
+                            {% for error in form.password.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-4">
+                            {{ form.confirm_password.label(class="form-label") }}
+                            <div class="password-container">
+                                {{ form.confirm_password(class="form-control password-input", id="confirm_password") }}
+                                <i class="bi bi-eye-slash password-icon" id="confirmPasswordToggle"></i>
+                            </div>
+                            {% for error in form.confirm_password.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary btn-auth") }}
+                        </div>
+                        
+                        <div class="already-registered">
+                            قبلا ثبت‌نام کرده‌اید؟
+                            <a href="#" onclick="switchTab('login'); return false;">وارد شوید</a>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Login Form -->
+                <div id="loginForm" class="auth-form" style="display: none;">
+                    <h2 class="auth-title">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        ورود به حساب کاربری
+                    </h2>
+                    
+                    <!-- Flash Messages for Login -->
+                    {% with messages = get_flashed_messages(with_categories=true, category_filter=['login']) %}
+                      {% if messages %}
+                        {% for category, message in messages %}
+                          <div class="alert alert-custom alert-custom-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                          </div>
                         {% endfor %}
-                    </div>
-                    <div class="mb-4 form-check">
-                        {{ login_form.remember_me(class="form-check-input") }}
-                        {{ login_form.remember_me.label(class="form-check-label") }}
-                    </div>
-                    <div class="d-grid">
-                        {{ login_form.submit(class="btn btn-custom-secondary btn-auth") }}
-                    </div>
-                </form>
+                      {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST" action="{{ url_for('login') }}">
+                        {{ login_form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ login_form.username.label(class="form-label") }}
+                            {{ login_form.username(class="form-control" + (" is-invalid" if login_form.username.errors else ""), placeholder="نام کاربری یا ایمیل") }}
+                            {% for error in login_form.username.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ login_form.password.label(class="form-label") }}
+                            <div class="password-container">
+                                {{ login_form.password(class="form-control password-input", id="login_password") }}
+                                <i class="bi bi-eye-slash password-icon" id="loginPasswordToggle"></i>
+                            </div>
+                            {% for error in login_form.password.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-4 form-check">
+                            {{ login_form.remember_me(class="form-check-input") }}
+                            {{ login_form.remember_me.label(class="form-check-label") }}
+                        </div>
+                        <div class="d-grid">
+                            {{ login_form.submit(class="btn btn-secondary btn-auth") }}
+                        </div>
+                        
+                        <div class="already-registered">
+                            حساب کاربری ندارید؟
+                            <a href="#" onclick="switchTab('register'); return false;">ثبت‌نام کنید</a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
 <script>
+function switchTab(tab) {
+    const registerTab = document.getElementById('registerTab');
+    const loginTab = document.getElementById('loginTab');
+    const registerForm = document.getElementById('registerForm');
+    const loginForm = document.getElementById('loginForm');
+    
+    if (tab === 'register') {
+        registerTab.classList.add('active');
+        loginTab.classList.remove('active');
+        registerForm.style.display = 'block';
+        loginForm.style.display = 'none';
+    } else {
+        registerTab.classList.remove('active');
+        loginTab.classList.add('active');
+        registerForm.style.display = 'none';
+        loginForm.style.display = 'block';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Password toggle functionality for all password fields
     function setupPasswordToggle(toggleId, inputId) {
         const toggle = document.getElementById(toggleId);
         const input = document.getElementById(inputId);
