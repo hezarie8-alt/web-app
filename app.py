@@ -352,13 +352,7 @@ def handle_send_message(data):
         'message_id': msg.id
     }, room=room_id)
 
-# --- مشکل 2: هندلر غیرضروری mark_as_read حذف شد ---
-# @socketio.on('mark_as_read')
-# def handle_mark_as_read(data):
-#     # این هندلر حذف شد چون منطق آن به مسیر /chat منتقل شد
-#     pass
 
-# --- اجرای برنامه ---
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

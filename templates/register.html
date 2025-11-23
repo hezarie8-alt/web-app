@@ -471,7 +471,7 @@
                         <div class="mb-3">
                             {{ login_form.username.label(class="form-label") }}
                             <span class="required">*</span>
-                            {{ login_form.username(class="form-control" + (" is-invalid" if login_form.username.errors else ""), placeholder="نام کاربری یا ایمیل") }}
+                            {{ login_form.username(class="form-control" + (" is-invalid" if login_form.username.errors else ""), placeholder="نام کاربری") }}
                             {% for error in login_form.username.errors %}
                                 <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
