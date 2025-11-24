@@ -147,14 +147,23 @@ def show_auth_page():
 def register():
     form = RegistrationForm()
     login_form = LoginForm()
+
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data, method='pbkdf2:sha256')
-        new_user = User(name=form.name.data, major=form.major.data, password_hash=hashed_password)
+        new_user = User(
+            name=form.name.data,
+            major=form.major.data,
+            password_hash=hashed_password
+        )
         db.session.add(new_user)
         db.session.commit()
-        flash('ثبت‌نام با موفقیت انجام شد. لطفاً وارد شوید.', 'success')
-        return redirect(url_for('show_auth_page'))
+        session['user_id'] = new_user.id
+
+        flash('ثبت‌نام موفقیت‌آمیز بود. وارد شدید!', 'success')
+        return redirect(url_for('match'))
+
     return render_template('register.html', form=form, login_form=login_form)
+
 
 @app.route('/login', methods=['POST'])
 def login():
