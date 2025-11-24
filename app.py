@@ -75,8 +75,7 @@ class Message(db.Model):
     read_at = db.Column(db.DateTime, nullable=True)
 
 # --- فرم‌های WTForms ---
-MAJOR_CHOICES = [('', 'رشته خود را انتخاب کنید'), ('مهندسی کامپیوتر', 'مهندسی کامپیوتر'), ('علوم کامپیوتر', 'علوم کامپیوتر')]
-GRADE_CHOICES = [('', 'مقطع خود را انتخاب کنید'), ('کارشناسی', 'کارشناسی'), ('کارشناسی ارشد', 'کارشناسی ارشد')]
+MAJOR_CHOICES = [('', '     رشته خود را انتخاب کنید'), ('     مهندسی کامپیوتر', '     مهندسی کامپیوتر'), ('     علوم کامپیوتر', '     علوم کامپیوتر')]
 
 class RegistrationForm(FlaskForm):
     name = StringField('نام کاربری', validators=[DataRequired(), Length(min=4, max=100)])
