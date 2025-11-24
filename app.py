@@ -3,13 +3,15 @@ from flask import Flask, render_template, request, redirect, url_for, session, a
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
-from sqlalchemy import or_, and_, func, text
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import or_, and_, func
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, BooleanField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from datetime import datetime
+from flask_migrate import upgrade
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from functools import wraps
 
 app = Flask(__name__)
@@ -24,45 +26,11 @@ if not database_url:
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# --- FIX 1: Add engine_options to handle DB disconnects (SSL errors) ---
-db = SQLAlchemy(app, engine_options={
-    "pool_pre_ping": True,  # Checks connection aliveness before use
-    "pool_recycle": 300,    # Refreshes connections every 5 minutes
-})
-# -----------------------------------------------------------------------
-
+db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 online_users = {}
-
-def ensure_created_at_column():
-    """Ensure 'created_at' column exists on user table. Safe to run on startup."""
-    try:
-        sql = text("""
-            ALTER TABLE IF EXISTS "user"
-            ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT now();
-        """)
-        with db.engine.connect() as conn:
-            conn.execute(sql)
-            conn.commit() 
-        print("ensure_created_at_column: check passed.")
-    except SQLAlchemyError as e:
-        print("ensure_created_at_column: failed:", str(e))
-
-def ensure_read_at_column():
-    """Ensure 'read_at' column exists on message table. Safe to run on startup."""
-    try:
-        sql = text("""
-            ALTER TABLE IF EXISTS "message"
-            ADD COLUMN IF NOT EXISTS read_at TIMESTAMP WITH TIME ZONE;
-        """)
-        with db.engine.connect() as conn:
-            conn.execute(sql)
-            conn.commit()
-        print("ensure_read_at_column: check passed.")
-    except SQLAlchemyError as e:
-        print("ensure_read_at_column: failed:", str(e))
 
 def login_required(f):
     @wraps(f)
@@ -78,6 +46,7 @@ def is_user_online(user_id):
 
 @app.context_processor
 def inject_user():
+    """این تابع متغیر 'current_user' را در تمام قالب‌های جینجا در دسترس قرار می‌دهد."""
     if 'current_user_id' in session and session['current_user_id']:
         current_user = User.query.get(session['current_user_id'])
         return dict(current_user=current_user)
@@ -88,6 +57,7 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     major = db.Column(db.String(100))
     password_hash = db.Column(db.String(128), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -160,15 +130,23 @@ def show_auth_page():
 def register():
     form = RegistrationForm()
     login_form = LoginForm()
+
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data, method='pbkdf2:sha256')
-        new_user = User(name=form.name.data, major=form.major.data, password_hash=hashed_password)
+        new_user = User(
+            name=form.name.data,
+            major=form.major.data,
+            password_hash=hashed_password
+        )
         db.session.add(new_user)
         db.session.commit()
         session['current_user_id'] = new_user.id
+
         flash('ثبت‌نام موفقیت‌آمیز بود. وارد شدید!', 'success')
         return redirect(url_for('match'))
+
     return render_template('register.html', form=form, login_form=login_form)
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -203,40 +181,42 @@ def match():
         users = query.filter((User.major.contains(q)) | (User.name.contains(q))).all()
     else:
         users = query.all()
-    return render_template('match.html', users=users, current_user_id=current_user_id, current_user=current_user)
+    return render_template(
+    'match.html',
+    users=users,
+    current_user_id=current_user_id,
+    current_user=current_user
+)
 
 @app.route('/profile/<int:user_id>')
 @login_required
 def profile(user_id):
     current_user_id = session.get('current_user_id')
-    
-    # --- FIX 2: Removed "abort(403)" ---
-    # We now allow viewing other profiles, but we pass a flag 'is_own_profile'
-    # so the template can hide/show the edit forms accordingly.
-    is_own_profile = (current_user_id == user_id)
+    if not current_user_id:
+        return redirect('/auth')
     
     user = User.query.get_or_404(user_id)
     
-    # Even if viewing another user, we initialize forms to prevent template errors,
-    # but the HTML should hide them if !is_own_profile
-    update_profile_form = UpdateProfileForm(obj=user, original_username=user.name)
-    update_password_form = UpdatePasswordForm()
-    delete_account_form = DeleteAccountForm()
+    # تعیین اینکه آیا کاربر می‌تواند پروفایل را ویرایش کند یا خیر
+    can_edit = (current_user_id == user_id)
+    
+    update_profile_form = UpdateProfileForm(obj=user, original_username=user.name) if can_edit else None
+    update_password_form = UpdatePasswordForm() if can_edit else None
+    delete_account_form = DeleteAccountForm() if can_edit else None
     
     return render_template('profile.html', 
-        user=user,
-        user_id=user.id,
-        is_own_profile=is_own_profile, # Pass this flag to template
-        update_profile_form=update_profile_form,
-        update_password_form=update_password_form,
-        delete_account_form=delete_account_form
-    )
+    user=user,
+    user_id=user.id,
+    can_edit=can_edit,
+    update_profile_form=update_profile_form,
+    update_password_form=update_password_form,
+    delete_account_form=delete_account_form
+)
 
 @app.route('/update_profile/<int:user_id>', methods=['POST'])
 @login_required
 def update_profile(user_id):
     current_user_id = session.get('current_user_id')
-    # Keep this check here! Only the owner can UPDATE.
     if current_user_id != user_id:
         abort(403)
 
@@ -282,6 +262,9 @@ def delete_account(user_id):
 @login_required
 def chat(other_user_id):
     current_user_id = session.get('current_user_id')
+    if not current_user_id:
+        return redirect('/auth')
+    
     if current_user_id == other_user_id:
         return redirect(url_for('inbox', user_id=current_user_id))
 
@@ -291,7 +274,6 @@ def chat(other_user_id):
     for msg in unread_messages:
         msg.read_at = db.func.now()
     db.session.commit()
-
     messages = Message.query.filter(or_(and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id), and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id))).order_by(Message.timestamp.asc()).all()
     
     message_form = MessageForm()
@@ -302,6 +284,9 @@ def chat(other_user_id):
 @login_required
 def send_message(other_user_id):
     current_user_id = session.get('current_user_id')
+    if not current_user_id:
+        return redirect('/auth')
+    
     form = MessageForm()
     if form.validate_on_submit():
         content = form.content.data
@@ -374,7 +359,6 @@ def handle_send_message(data):
     content = data.get('content')
     if not other_user_id or not content: return
 
-    # Ensure DB connection is alive before adding message (handled by pool_pre_ping)
     room_id = f"chat-{min(current_user_id, other_user_id)}-{max(current_user_id, other_user_id)}"
     msg = Message(sender_id=current_user_id, receiver_id=other_user_id, content=content)
     db.session.add(msg)
@@ -393,6 +377,7 @@ def handle_send_message(data):
 def handle_typing(data):
     current_user_id = session.get('current_user_id')
     if not current_user_id: return
+    
     room = data.get('room')
     if room:
         emit('typing', {'user_id': current_user_id}, room=room, include_self=False)
@@ -401,18 +386,42 @@ def handle_typing(data):
 def handle_stop_typing(data):
     current_user_id = session.get('current_user_id')
     if not current_user_id: return
+    
     room = data.get('room')
     if room:
         emit('stop_typing', {'user_id': current_user_id}, room=room, include_self=False)
 
-try:
-    with app.app_context():
-        db.create_all()
-        ensure_created_at_column()
-        ensure_read_at_column()
-except Exception as e:
-    print(f"Database setup failed on startup: {e}")
+def ensure_columns():
+    """Ensure required columns exist in database tables."""
+    try:
+        # Check and add created_at column to user table
+        user_table_sql = text("""
+            ALTER TABLE IF EXISTS "user"
+            ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+        """)
+        
+        # Check and add read_at column to message table
+        message_table_sql = text("""
+            ALTER TABLE IF EXISTS "message"
+            ADD COLUMN IF NOT EXISTS read_at TIMESTAMP WITH TIME ZONE;
+        """)
+        
+        with db.engine.connect() as conn:
+            conn.execute(user_table_sql)
+            conn.execute(message_table_sql)
+        db.session.commit()
+        print("Database columns verified/added successfully")
+    except SQLAlchemyError as e:
+        print("ensure_columns: failed:", str(e))
+        try:
+            db.session.rollback()
+        except:
+            pass
 
 if __name__ == '__main__':
+    with app.app_context():
+        ensure_columns()
+        db.create_all()
+
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, host='0.0.0.0', port=port)

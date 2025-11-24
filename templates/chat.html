@@ -201,6 +201,10 @@
             background-color: #4caf50;
         }
         
+        .status-indicator.offline {
+            background-color: #9e9e9e;
+        }
+        
         /* Chat Messages */
         .chat-messages {
             flex-grow: 1;
@@ -218,12 +222,12 @@
         }
         
         .message.sent {
-            align-self: flex-start;
+            align-self: flex-end;
             flex-direction: row-reverse;
         }
         
         .message.received {
-            align-self: flex-end;
+            align-self: flex-start;
         }
         
         .message-avatar {
@@ -362,6 +366,36 @@
             transform: scale(1.05);
         }
         
+        .send-button:disabled {
+            background-color: #b0bec5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Connection Status */
+        .connection-status {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: white;
+            background-color: var(--error);
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .connection-status.connected {
+            background-color: var(--success);
+        }
+        
+        .connection-status.show {
+            transform: translateY(0);
+        }
+        
         /* Animations */
         @keyframes fadeIn {
             from {
@@ -402,6 +436,11 @@
     </style>
 </head>
 <body>
+    <!-- Connection Status -->
+    <div class="connection-status" id="connection-status">
+        <span id="connection-text">در حال اتصال به سرور...</span>
+    </div>
+    
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
@@ -439,8 +478,8 @@
                 <div class="other-user-info">
                     <div class="other-user-name">{{ other_user.name }}</div>
                     <div class="other-user-status">
-                        <span class="status-indicator"></span>
-                        آنلاین
+                        <span class="status-indicator" id="user-status"></span>
+                        <span id="status-text">در حال بررسی وضعیت...</span>
                     </div>
                 </div>
             </div>
@@ -451,14 +490,14 @@
                 {% if messages %}
                     {% for message in messages %}
                         {% if message.sender_id == current_user.id %}
-                            <div class="message sent">
+                            <div class="message sent" data-message-id="{{ message.id }}">
                                 <div class="message-content">
                                     <div class="message-text">{{ message.content }}</div>
                                     <div class="message-time">{{ message.timestamp.strftime('%H:%M') }}</div>
                                 </div>
                             </div>
                         {% else %}
-                            <div class="message received">
+                            <div class="message received" data-message-id="{{ message.id }}">
                                 <div class="message-avatar">{{ other_user.name[0] }}</div>
                                 <div class="message-content">
                                     <div class="message-text">{{ message.content }}</div>
@@ -469,13 +508,6 @@
                     {% endfor %}
                 {% else %}
                     <div class="date-separator">شروع گفتگو</div>
-                    <div class="message received">
-                        <div class="message-avatar">{{ other_user.name[0] }}</div>
-                        <div class="message-content">
-                            <div class="message-text">سلام! چطور می‌توانم به شما کمک کنم؟</div>
-                            <div class="message-time">الان</div>
-                        </div>
-                    </div>
                 {% endif %}
                 
                 <!-- Typing Indicator (hidden by default) -->
@@ -490,7 +522,7 @@
             <div class="chat-input-container">
                 <form id="message-form" class="chat-input-form">
                     <input type="text" id="message-input" class="chat-input" placeholder="پیام خود را بنویسید..." autocomplete="off">
-                    <button type="submit" class="send-button">
+                    <button type="submit" class="send-button" id="send-button">
                         <i class="material-icons">send</i>
                     </button>
                 </form>
@@ -502,14 +534,59 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Connection status
+            const connectionStatus = document.getElementById('connection-status');
+            const connectionText = document.getElementById('connection-text');
+            const userStatus = document.getElementById('user-status');
+            const statusText = document.getElementById('status-text');
+            
             // Connect to Socket.IO
             const socket = io();
             const currentUserId = {{ current_user.id }};
             const otherUserId = {{ other_user.id }};
             const roomName = `chat-${Math.min(currentUserId, otherUserId)}-${Math.max(currentUserId, otherUserId)}`;
             
-            // Join chat room
-            socket.emit('join_chat', { other_user_id: otherUserId });
+            // Initial connection status
+            connectionStatus.classList.add('show');
+            
+            // When connected to server
+            socket.on('connect', () => {
+                connectionStatus.classList.remove('error');
+                connectionStatus.classList.add('connected');
+                connectionText.textContent = 'متصل به سرور';
+                
+                setTimeout(() => {
+                    connectionStatus.classList.remove('show');
+                }, 2000);
+                
+                // Join chat room
+                socket.emit('join_chat', { other_user_id: otherUserId });
+                
+                // Check if other user is online
+                fetch(`/is_user_online/${otherUserId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.online) {
+                            userStatus.classList.remove('offline');
+                            statusText.textContent = 'آنلاین';
+                        } else {
+                            userStatus.classList.add('offline');
+                            statusText.textContent = 'آفلاین';
+                        }
+                    })
+                    .catch(error => console.error('Error checking user status:', error));
+            });
+            
+            // When disconnected from server
+            socket.on('disconnect', () => {
+                connectionStatus.classList.remove('connected');
+                connectionStatus.classList.add('error');
+                connectionText.textContent = 'ارتباط با سرور قطع شد. در حال تلاش برای اتصال مجدد...';
+                connectionStatus.classList.add('show');
+                
+                userStatus.classList.add('offline');
+                statusText.textContent = 'آفلاین';
+            });
             
             // Scroll to bottom of messages
             function scrollToBottom() {
@@ -523,36 +600,56 @@
             // Handle form submission
             const messageForm = document.getElementById('message-form');
             const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
             
             messageForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 
                 const content = messageInput.value.trim();
                 if (content) {
+                    // Disable send button to prevent duplicate messages
+                    sendButton.disabled = true;
+                    
+                    // Create temporary message element
+                    const tempMessageId = 'temp-' + Date.now();
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message sent';
+                    messageDiv.setAttribute('data-message-id', tempMessageId);
+                    messageDiv.innerHTML = `
+                        <div class="message-content">
+                            <div class="message-text">${content}</div>
+                            <div class="message-time">${new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                    `;
+                    
+                    // Add message to chat
+                    document.getElementById('chat-messages').appendChild(messageDiv);
+                    
+                    // Clear input
+                    messageInput.value = '';
+                    
+                    // Scroll to bottom
+                    scrollToBottom();
+                    
                     // Send message via Socket.IO
                     socket.emit('send_message', {
                         other_user_id: otherUserId,
                         content: content
                     });
                     
-                    // Clear input
-                    messageInput.value = '';
-                    
-                    // Fallback: Send via HTTP request
-                    fetch(`/send_message/${otherUserId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: `content=${encodeURIComponent(content)}`
-                    })
-                    .catch(error => console.error('Error sending message:', error));
+                    // Re-enable send button after a short delay
+                    setTimeout(() => {
+                        sendButton.disabled = false;
+                    }, 500);
                 }
             });
             
             // Handle new messages from Socket.IO
             socket.on('new_message', (data) => {
-                if (data.sender_id == otherUserId || data.sender_id == currentUserId) {
+                // Check if this message is for the current chat
+                if ((data.sender_id == otherUserId && data.receiver_id == currentUserId) || 
+                    (data.sender_id == currentUserId && data.receiver_id == otherUserId)) {
+                    
                     const chatMessages = document.getElementById('chat-messages');
                     const typingIndicator = document.getElementById('typing-indicator');
                     
@@ -561,29 +658,39 @@
                         typingIndicator.style.display = 'none';
                     }
                     
-                    // Create message element
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = data.sender_id == currentUserId ? 'message sent' : 'message received';
+                    // Check if this is a temporary message that needs to be replaced
+                    const tempMessageId = 'temp-' + Date.now();
+                    const tempMessage = document.querySelector(`[data-message-id="${tempMessageId}"]`);
                     
-                    if (data.sender_id != currentUserId) {
-                        messageDiv.innerHTML = `
-                            <div class="message-avatar">${data.sender_name[0]}</div>
-                            <div class="message-content">
-                                <div class="message-text">${data.content}</div>
-                                <div class="message-time">${data.timestamp}</div>
-                            </div>
-                        `;
+                    if (tempMessage && data.sender_id == currentUserId) {
+                        // Replace temporary message with the real one
+                        tempMessage.setAttribute('data-message-id', data.message_id);
                     } else {
-                        messageDiv.innerHTML = `
-                            <div class="message-content">
-                                <div class="message-text">${data.content}</div>
-                                <div class="message-time">${data.timestamp}</div>
-                            </div>
-                        `;
+                        // Create message element
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = data.sender_id == currentUserId ? 'message sent' : 'message received';
+                        messageDiv.setAttribute('data-message-id', data.message_id);
+                        
+                        if (data.sender_id != currentUserId) {
+                            messageDiv.innerHTML = `
+                                <div class="message-avatar">{{ other_user.name[0] }}</div>
+                                <div class="message-content">
+                                    <div class="message-text">${data.content}</div>
+                                    <div class="message-time">${data.timestamp}</div>
+                                </div>
+                            `;
+                        } else {
+                            messageDiv.innerHTML = `
+                                <div class="message-content">
+                                    <div class="message-text">${data.content}</div>
+                                    <div class="message-time">${data.timestamp}</div>
+                                </div>
+                            `;
+                        }
+                        
+                        // Add message to chat
+                        chatMessages.appendChild(messageDiv);
                     }
-                    
-                    // Add message to chat
-                    chatMessages.appendChild(messageDiv);
                     
                     // Scroll to bottom
                     scrollToBottom();
@@ -593,8 +700,16 @@
             // Handle status messages
             socket.on('status_message', (data) => {
                 if (data.type === 'join') {
-                    // You could show a notification here if desired
-                    console.log(`${data.msg}`);
+                    // Update user status
+                    userStatus.classList.remove('offline');
+                    statusText.textContent = 'آنلاین';
+                    
+                    // Show notification
+                    const notification = document.createElement('div');
+                    notification.className = 'date-separator';
+                    notification.textContent = data.msg;
+                    document.getElementById('chat-messages').appendChild(notification);
+                    scrollToBottom();
                 }
             });
             

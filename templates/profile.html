@@ -407,6 +407,62 @@
             margin-top: 0.25rem;
         }
         
+        /* Message Box */
+        .message-box {
+            background-color: rgba(2, 136, 209, 0.1);
+            border-right: 4px solid var(--info);
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .message-box i {
+            color: var(--info);
+            font-size: 2rem;
+        }
+        
+        .message-content {
+            flex: 1;
+        }
+        
+        .message-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--info);
+        }
+        
+        .message-text {
+            color: var(--text-secondary);
+        }
+        
+        /* Chat Button */
+        .chat-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: var(--text-on-primary);
+            border: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .chat-button:hover {
+            background-color: var(--primary-dark);
+            transform: scale(1.1);
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .profile-header {
@@ -457,9 +513,11 @@
                 <li><a href="{{ url_for('index') }}">صفحه اصلی</a></li>
                 <li><a href="{{ url_for('about') }}">درباره ما</a></li>
                 <li><a href="{{ url_for('match') }}">جستجوی کاربران</a></li>
-                <li><a href="{{ url_for('inbox', user_id=current_user.id) }}">صندوق پیام</a></li>
-                <li><a href="{{ url_for('profile', user_id=current_user.id) }}">پروفایل</a></li>
-                <li><a href="{{ url_for('logout') }}">خروج</a></li>
+                {% if current_user %}
+                    <li><a href="{{ url_for('inbox', user_id=current_user.id) }}">صندوق پیام</a></li>
+                    <li><a href="{{ url_for('profile', user_id=current_user.id) }}">پروفایل</a></li>
+                    <li><a href="{{ url_for('logout') }}">خروج</a></li>
+                {% endif %}
             </ul>
             
             {% if current_user %}
@@ -492,152 +550,174 @@
                 </div>
             </div>
             
-            <!-- Tabs Container -->
-            <div class="tabs-container">
-                <div class="tabs-header">
-                    <button class="tab-button active" onclick="switchTab('profile-info')">
-                        <i class="material-icons">person</i>
-                        اطلاعات پروفایل
-                    </button>
-                    <button class="tab-button" onclick="switchTab('password')">
-                        <i class="material-icons">lock</i>
-                        تغییر رمز عبور
-                    </button>
-                    <button class="tab-button" onclick="switchTab('account')">
-                        <i class="material-icons">settings</i>
-                        تنظیمات حساب
-                    </button>
-                </div>
-                
-                <!-- Profile Info Tab -->
-                <div id="profile-info" class="tab-content active">
-                    <div class="form-section">
-                        <h2 class="section-title">
-                            <i class="material-icons">edit</i>
-                            ویرایش اطلاعات پروفایل
-                        </h2>
-                        
-                        <form method="POST" action="{{ url_for('update_profile', user_id=user.id) }}">
-                            {{ update_profile_form.hidden_tag() }}
-                            
-                            <div class="form-group">
-                                {{ update_profile_form.name.label(class="form-label") }}
-                                {{ update_profile_form.name(class="form-control") }}
-                                {% if update_profile_form.name.errors %}
-                                    {% for error in update_profile_form.name.errors %}
-                                        <div class="error-message">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                            
-                            <div class="form-group">
-                                {{ update_profile_form.major.label(class="form-label") }}
-                                {{ update_profile_form.major(class="form-select") }}
-                                {% if update_profile_form.major.errors %}
-                                    {% for error in update_profile_form.major.errors %}
-                                        <div class="error-message">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                            
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="material-icons">save</i>
-                                    ذخیره تغییرات
-                                </button>
-                                <button type="reset" class="btn btn-outline">
-                                    <i class="material-icons">refresh</i>
-                                    بازنشانی
-                                </button>
-                            </div>
-                        </form>
+            <!-- Message for non-owners -->
+            {% if not can_edit %}
+                <div class="message-box">
+                    <i class="material-icons">info</i>
+                    <div class="message-content">
+                        <div class="message-title">پروفایل کاربر دیگر</div>
+                        <p class="message-text">
+                            شما در حال مشاهده پروفایل {{ user.name }} هستید. برای ارسال پیام به این کاربر، می‌توانید از دکمه چت در پایین صفحه استفاده کنید.
+                        </p>
                     </div>
                 </div>
-                
-                <!-- Password Tab -->
-                <div id="password" class="tab-content">
-                    <div class="form-section">
-                        <h2 class="section-title">
+            {% endif %}
+            
+            <!-- Tabs Container -->
+            {% if can_edit %}
+                <div class="tabs-container">
+                    <div class="tabs-header">
+                        <button class="tab-button active" onclick="switchTab('profile-info')">
+                            <i class="material-icons">person</i>
+                            اطلاعات پروفایل
+                        </button>
+                        <button class="tab-button" onclick="switchTab('password')">
                             <i class="material-icons">lock</i>
                             تغییر رمز عبور
-                        </h2>
-                        
-                        <form method="POST" action="{{ url_for('update_password') }}">
-                            {{ update_password_form.hidden_tag() }}
-                            
-                            <div class="form-group">
-                                {{ update_password_form.current_password.label(class="form-label") }}
-                                {{ update_password_form.current_password(class="form-control", type="password") }}
-                                {% if update_password_form.current_password.errors %}
-                                    {% for error in update_password_form.current_password.errors %}
-                                        <div class="error-message">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                            
-                            <div class="form-group">
-                                {{ update_password_form.new_password.label(class="form-label") }}
-                                {{ update_password_form.new_password(class="form-control", type="password") }}
-                                {% if update_password_form.new_password.errors %}
-                                    {% for error in update_password_form.new_password.errors %}
-                                        <div class="error-message">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                            
-                            <div class="form-group">
-                                {{ update_password_form.confirm_new_password.label(class="form-label") }}
-                                {{ update_password_form.confirm_new_password(class="form-control", type="password") }}
-                                {% if update_password_form.confirm_new_password.errors %}
-                                    {% for error in update_password_form.confirm_new_password.errors %}
-                                        <div class="error-message">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                            
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="material-icons">lock</i>
-                                    تغییر رمز عبور
-                                </button>
-                            </div>
-                        </form>
+                        </button>
+                        <button class="tab-button" onclick="switchTab('account')">
+                            <i class="material-icons">settings</i>
+                            تنظیمات حساب
+                        </button>
                     </div>
-                </div>
-                
-                <!-- Account Tab -->
-                <div id="account" class="tab-content">
-                    <div class="form-section">
-                        <h2 class="section-title">
-                            <i class="material-icons">warning</i>
-                            تنظیمات حساس حساب
-                        </h2>
-                        
-                        <div class="warning-box">
-                            <div class="warning-title">
-                                <i class="material-icons">warning</i>
-                                هشدار حذف حساب کاربری
-                            </div>
-                            <p class="warning-text">
-                                با حذف حساب کاربری خود، تمام اطلاعات، پیام‌ها و داده‌های شما به طور کامل از سیستم حذف خواهند شد و این عمل غیرقابل بازگشت است. لطفاً با احتیاط این کار را انجام دهید.
-                            </p>
+                    
+                    <!-- Profile Info Tab -->
+                    <div id="profile-info" class="tab-content active">
+                        <div class="form-section">
+                            <h2 class="section-title">
+                                <i class="material-icons">edit</i>
+                                ویرایش اطلاعات پروفایل
+                            </h2>
+                            
+                            <form method="POST" action="{{ url_for('update_profile', user_id=user.id) }}">
+                                {{ update_profile_form.hidden_tag() }}
+                                
+                                <div class="form-group">
+                                    {{ update_profile_form.name.label(class="form-label") }}
+                                    {{ update_profile_form.name(class="form-control") }}
+                                    {% if update_profile_form.name.errors %}
+                                        {% for error in update_profile_form.name.errors %}
+                                            <div class="error-message">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    {{ update_profile_form.major.label(class="form-label") }}
+                                    {{ update_profile_form.major(class="form-select") }}
+                                    {% if update_profile_form.major.errors %}
+                                        {% for error in update_profile_form.major.errors %}
+                                            <div class="error-message">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="material-icons">save</i>
+                                        ذخیره تغییرات
+                                    </button>
+                                    <button type="reset" class="btn btn-outline">
+                                        <i class="material-icons">refresh</i>
+                                        بازنشانی
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        
-                        <form method="POST" action="{{ url_for('delete_account', user_id=user_id) }}" onsubmit="return confirmDeleteAccount()">
-                            {{ delete_account_form.hidden_tag() }}
+                    </div>
+                    
+                    <!-- Password Tab -->
+                    <div id="password" class="tab-content">
+                        <div class="form-section">
+                            <h2 class="section-title">
+                                <i class="material-icons">lock</i>
+                                تغییر رمز عبور
+                            </h2>
                             
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-danger">
-                                    <i class="material-icons">delete_forever</i>
-                                    حذف حساب کاربری
-                                </button>
+                            <form method="POST" action="{{ url_for('update_password') }}">
+                                {{ update_password_form.hidden_tag() }}
+                                
+                                <div class="form-group">
+                                    {{ update_password_form.current_password.label(class="form-label") }}
+                                    {{ update_password_form.current_password(class="form-control", type="password") }}
+                                    {% if update_password_form.current_password.errors %}
+                                        {% for error in update_password_form.current_password.errors %}
+                                            <div class="error-message">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    {{ update_password_form.new_password.label(class="form-label") }}
+                                    {{ update_password_form.new_password(class="form-control", type="password") }}
+                                    {% if update_password_form.new_password.errors %}
+                                        {% for error in update_password_form.new_password.errors %}
+                                            <div class="error-message">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-group">
+                                    {{ update_password_form.confirm_new_password.label(class="form-label") }}
+                                    {{ update_password_form.confirm_new_password(class="form-control", type="password") }}
+                                    {% if update_password_form.confirm_new_password.errors %}
+                                        {% for error in update_password_form.confirm_new_password.errors %}
+                                            <div class="error-message">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="material-icons">lock</i>
+                                        تغییر رمز عبور
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Account Tab -->
+                    <div id="account" class="tab-content">
+                        <div class="form-section">
+                            <h2 class="section-title">
+                                <i class="material-icons">warning</i>
+                                تنظیمات حساس حساب
+                            </h2>
+                            
+                            <div class="warning-box">
+                                <div class="warning-title">
+                                    <i class="material-icons">warning</i>
+                                    هشدار حذف حساب کاربری
+                                </div>
+                                <p class="warning-text">
+                                    با حذف حساب کاربری خود، تمام اطلاعات، پیام‌ها و داده‌های شما به طور کامل از سیستم حذف خواهند شد و این عمل غیرقابل بازگشت است. لطفاً با احتیاط این کار را انجام دهید.
+                                </p>
                             </div>
-                        </form>
+                            
+                            <form method="POST" action="{{ url_for('delete_account', user_id=user_id) }}" onsubmit="return confirmDeleteAccount()">
+                                {{ delete_account_form.hidden_tag() }}
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="material-icons">delete_forever</i>
+                                        حذف حساب کاربری
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
+            {% endif %}
         </div>
     </main>
+    
+    <!-- Chat Button for non-owners -->
+    {% if not can_edit and current_user %}
+        <a href="{{ url_for('chat', other_user_id=user.id) }}" class="chat-button">
+            <i class="material-icons">chat</i>
+        </a>
+    {% endif %}
     
     <!-- JavaScript -->
     <script>
