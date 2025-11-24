@@ -178,14 +178,20 @@ def logout():
 @app.route('/match')
 @login_required
 def match():
-    current_user_id = session.get('current_user_id')
-    q = request.args.get('q')
+    current_user_id = session['user_id']
+    current_user = User.query.get(current_user_id)
     query = User.query.filter(User.id != current_user_id)
     if q:
         users = query.filter((User.major.contains(q)) | (User.name.contains(q))).all()
     else:
         users = query.all()
-    return render_template('match.html', users=users, current_user_id=current_user_id)
+    return render_template(
+    'match.html',
+    users=users,
+    current_user_id=current_user_id,
+    current_user=current_user  # اضافه شده
+)
+
 
 @app.route('/profile/<int:user_id>')
 @login_required

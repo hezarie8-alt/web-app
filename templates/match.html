@@ -465,8 +465,8 @@
                 <li><a href="{{ url_for('index') }}">صفحه اصلی</a></li>
                 <li><a href="{{ url_for('about') }}">درباره ما</a></li>
                 <li><a href="{{ url_for('match') }}">جستجوی کاربران</a></li>
-                <li><a href="{{ url_for('inbox', user_id=current_user.id) }}">صندوق پیام</a></li>
-                <li><a href="{{ url_for('profile', user_id=current_user.id) }}">پروفایل</a></li>
+                <li><a href="{{ url_for('inbox', user_id=current_user_id) }}">صندوق پیام</a></li>
+                <li><a href="{{ url_for('profile', user_id=current_user_id) }}">پروفایل</a></li>
                 <li><a href="{{ url_for('logout') }}">خروج</a></li>
             </ul>
             
