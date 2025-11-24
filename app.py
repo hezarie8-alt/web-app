@@ -1,19 +1,18 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, session, abort, flash
+from flask import Flask, render_template, request, redirect, url_for, session, abort, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
-from sqlalchemy import or_, and_, func
+from sqlalchemy import or_, and_, func, text
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, BooleanField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from datetime import datetime
-from flask_migrate import upgrade
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
 from functools import wraps
+from sqlalchemy.exc import SQLAlchemyError
 
+# --- تنظیمات اولیه اپلیکیشن ---
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_default_secret_key_for_development')
 
@@ -26,12 +25,14 @@ if not database_url:
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# --- مقداردهی اولیه به افزونه‌ها ---
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 online_users = {}
 
+# --- توابع کمکی و دکوراتورها ---
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -52,6 +53,35 @@ def inject_user():
         return dict(current_user=current_user)
     return dict(current_user=None)
 
+# --- توابع به‌روزرسانی ساختار دیتابیس ---
+def ensure_columns():
+    """ستون‌های مورد نیاز را به جداول اضافه می‌کند. این تابع ایمن است و در صورت وجود ستون خطایی ایجاد نمی‌کند."""
+    try:
+        # اضافه کردن ستون created_at به جدول user
+        user_table_sql = text("""
+            ALTER TABLE IF EXISTS "user"
+            ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+        """)
+        
+        # اضافه کردن ستون read_at به جدول message
+        message_table_sql = text("""
+            ALTER TABLE IF EXISTS "message"
+            ADD COLUMN IF NOT EXISTS read_at TIMESTAMP WITH TIME ZONE;
+        """)
+        
+        with db.engine.connect() as conn:
+            conn.execute(user_table_sql)
+            conn.execute(message_table_sql)
+        db.session.commit()
+        print("Database columns verified/added successfully")
+    except SQLAlchemyError as e:
+        print("ensure_columns: failed:", str(e))
+        try:
+            db.session.rollback()
+        except:
+            pass
+
+# --- مدل‌های دیتابیس ---
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
@@ -67,6 +97,7 @@ class Message(db.Model):
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
     read_at = db.Column(db.DateTime, nullable=True)
 
+# --- فرم‌های WTForms ---
 MAJOR_CHOICES = [('', '     رشته خود را انتخاب کنید'), ('     مهندسی کامپیوتر', '     مهندسی کامپیوتر'), ('     علوم کامپیوتر', '     علوم کامپیوتر')]
 
 class RegistrationForm(FlaskForm):
@@ -110,6 +141,7 @@ class UpdatePasswordForm(FlaskForm):
 class DeleteAccountForm(FlaskForm):
     submit = SubmitField('حذف حساب کاربری')
 
+# --- مسیرهای اصلی (Routes) ---
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -140,13 +172,13 @@ def register():
         )
         db.session.add(new_user)
         db.session.commit()
+        # اصلاح: استفاده از current_user_id برای یکپارچگی
         session['current_user_id'] = new_user.id
 
         flash('ثبت‌نام موفقیت‌آمیز بود. وارد شدید!', 'success')
         return redirect(url_for('match'))
 
     return render_template('register.html', form=form, login_form=login_form)
-
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -162,7 +194,7 @@ def login():
     return render_template('register.html', form=form, login_form=login_form)
 
 @app.route('/logout')
-@login_required
+@login_required # اصلاح: اضافه شدن دکوراتور برای امنیت
 def logout():
     session.pop('current_user_id', None)
     flash('شما با موفقیت از حساب کاربری خود خارج شدید.', 'info')
@@ -171,6 +203,7 @@ def logout():
 @app.route('/match')
 @login_required
 def match():
+    # اصلاح: استفاده از current_user_id
     current_user_id = session.get('current_user_id')
     if not current_user_id:
         return redirect('/auth')
@@ -197,7 +230,7 @@ def profile(user_id):
     
     user = User.query.get_or_404(user_id)
     
-    # تعیین اینکه آیا کاربر می‌تواند پروفایل را ویرایش کند یا خیر
+    # اصلاح: تعیین اینکه آیا کاربر می‌تواند پروفایل را ویرایش کند یا خیر
     can_edit = (current_user_id == user_id)
     
     update_profile_form = UpdateProfileForm(obj=user, original_username=user.name) if can_edit else None
@@ -270,32 +303,32 @@ def chat(other_user_id):
 
     other_user = User.query.get_or_404(other_user_id)
 
-    unread_messages = Message.query.filter(and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id, Message.read_at.is_(None))).all()
+    # بهینه‌سازی: فقط پیام‌های خوانده نشده را به عنوان خوانده شده علامت‌گذاری کن
+    unread_messages = Message.query.filter(
+        and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id, Message.read_at.is_(None))
+    ).all()
     for msg in unread_messages:
         msg.read_at = db.func.now()
     db.session.commit()
-    messages = Message.query.filter(or_(and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id), and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id))).order_by(Message.timestamp.asc()).all()
+
+    # بهینه‌سازی: فقط ۵۰ پیام آخر را بارگذاری کن تا صفحه سریع باز شود
+    messages = Message.query.filter(
+        or_(
+            and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id),
+            and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id)
+        )
+    ).order_by(Message.timestamp.desc()).limit(50).all()
+    
+    # چون پیام‌ها را به ترتیب نزولی گرفتیم، باید ترتیب را برای نمایش صحیح برگردانیم
+    messages.reverse()
     
     message_form = MessageForm()
     
     return render_template('chat.html', other_user=other_user, messages=messages, message_form=message_form)
 
-@app.route('/send_message/<int:other_user_id>', methods=['POST'])
-@login_required
-def send_message(other_user_id):
-    current_user_id = session.get('current_user_id')
-    if not current_user_id:
-        return redirect('/auth')
-    
-    form = MessageForm()
-    if form.validate_on_submit():
-        content = form.content.data
-        if content:
-            msg = Message(sender_id=current_user_id, receiver_id=other_user_id, content=content)
-            db.session.add(msg)
-            db.session.commit()
-            flash('پیام شما ارسال شد.', 'success')
-    return redirect(url_for('chat', other_user_id=other_user_id))
+# این مسیر دیگر نیازی نیست چون ارسال کاملاً از طریق Socket.IO انجام می‌شود
+# @app.route('/send_message/<int:other_user_id>', methods=['POST'])
+# ...
 
 @app.route('/inbox/<int:user_id>')
 @login_required
@@ -326,6 +359,11 @@ def inbox(user_id):
     conversations.sort(key=lambda x: x['last_message_timestamp'], reverse=True)
     return render_template('inbox.html', conversations=conversations, user_id=user_id)
 
+@app.route('/is_user_online/<int:user_id>')
+def check_user_online(user_id):
+    return jsonify({'online': is_user_online(user_id)})
+
+# --- رویدادهای Socket.IO ---
 @socketio.on('connect')
 def handle_connect():
     current_user_id = session.get('current_user_id')
@@ -365,13 +403,14 @@ def handle_send_message(data):
     db.session.commit()
     
     user = User.query.get(current_user_id)
+    # بهینه‌سازی: پیام را برای خود ارسال‌کننده ارسال نکن تا از تکرار جلوگیری شود
     emit('new_message', {
         'sender_name': user.name,
         'content': content,
         'timestamp': msg.timestamp.strftime('%H:%M'),
         'sender_id': current_user_id,
         'message_id': msg.id
-    }, room=room_id)
+    }, room=room_id, include_self=False)
 
 @socketio.on('typing')
 def handle_typing(data):
@@ -391,37 +430,14 @@ def handle_stop_typing(data):
     if room:
         emit('stop_typing', {'user_id': current_user_id}, room=room, include_self=False)
 
-def ensure_columns():
-    """Ensure required columns exist in database tables."""
-    try:
-        # Check and add created_at column to user table
-        user_table_sql = text("""
-            ALTER TABLE IF EXISTS "user"
-            ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT now();
-        """)
-        
-        # Check and add read_at column to message table
-        message_table_sql = text("""
-            ALTER TABLE IF EXISTS "message"
-            ADD COLUMN IF NOT EXISTS read_at TIMESTAMP WITH TIME ZONE;
-        """)
-        
-        with db.engine.connect() as conn:
-            conn.execute(user_table_sql)
-            conn.execute(message_table_sql)
-        db.session.commit()
-        print("Database columns verified/added successfully")
-    except SQLAlchemyError as e:
-        print("ensure_columns: failed:", str(e))
-        try:
-            db.session.rollback()
-        except:
-            pass
-
+# --- اجرای اپلیکیشن ---
 if __name__ == '__main__':
     with app.app_context():
+        # اطمینان از وجود ستون‌های مورد نیاز در دیتابیس
         ensure_columns()
+        # ایجاد جداول در صورت عدم وجود
         db.create_all()
 
     port = int(os.environ.get('PORT', 5000))
+    # استفاده از socketio.run برای پشتیبانی از WebSocket
     socketio.run(app, host='0.0.0.0', port=port)
