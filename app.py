@@ -3,52 +3,14 @@ from flask import Flask, render_template, request, redirect, url_for, session, a
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
-from sqlalchemy import or_, and_, func
+from sqlalchemy import or_, and_, func, text
+from sqlalchemy.exc import SQLAlchemyError
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, BooleanField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from datetime import datetime
-from flask_migrate import upgrade
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
 from functools import wraps
-
-def ensure_created_at_column():
-    """Ensure 'created_at' column exists on user table. Safe to run on startup.
-       Works with PostgreSQL (used on Render)."""
-    try:
-        sql = text("""
-            ALTER TABLE IF EXISTS "user"
-            ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT now();
-        """)
-        with db.engine.connect() as conn:
-            conn.execute(sql)
-        db.session.commit()
-    except SQLAlchemyError as e:
-        print("ensure_created_at_column: failed:", str(e))
-        try:
-            db.session.rollback()
-        except:
-            pass
-
-def ensure_read_at_column():
-    """Ensure 'read_at' column exists on message table. Safe to run on startup.
-       Works with PostgreSQL (used on Render)."""
-    try:
-        sql = text("""
-            ALTER TABLE IF EXISTS "message"
-            ADD COLUMN IF NOT EXISTS read_at TIMESTAMP WITH TIME ZONE;
-        """)
-        with db.engine.connect() as conn:
-            conn.execute(sql)
-        db.session.commit()
-    except SQLAlchemyError as e:
-        print("ensure_read_at_column: failed:", str(e))
-        try:
-            db.session.rollback()
-        except:
-            pass
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_default_secret_key_for_development')
@@ -67,6 +29,34 @@ migrate = Migrate(app, db)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 online_users = {}
+
+def ensure_created_at_column():
+    """Ensure 'created_at' column exists on user table. Safe to run on startup."""
+    try:
+        sql = text("""
+            ALTER TABLE IF EXISTS "user"
+            ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+        """)
+        with db.engine.connect() as conn:
+            conn.execute(sql)
+            conn.commit() # Explicit commit is often required in SQLAlchemy 2.0+
+        print("ensure_created_at_column: check passed.")
+    except SQLAlchemyError as e:
+        print("ensure_created_at_column: failed:", str(e))
+
+def ensure_read_at_column():
+    """Ensure 'read_at' column exists on message table. Safe to run on startup."""
+    try:
+        sql = text("""
+            ALTER TABLE IF EXISTS "message"
+            ADD COLUMN IF NOT EXISTS read_at TIMESTAMP WITH TIME ZONE;
+        """)
+        with db.engine.connect() as conn:
+            conn.execute(sql)
+            conn.commit() # Explicit commit is often required in SQLAlchemy 2.0+
+        print("ensure_read_at_column: check passed.")
+    except SQLAlchemyError as e:
+        print("ensure_read_at_column: failed:", str(e))
 
 def login_required(f):
     @wraps(f)
@@ -93,6 +83,7 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     major = db.Column(db.String(100))
     password_hash = db.Column(db.String(128), nullable=False)
+    # created_at handled by ensure_created_at_column migration logic
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -217,11 +208,11 @@ def match():
     else:
         users = query.all()
     return render_template(
-    'match.html',
-    users=users,
-    current_user_id=current_user_id,
-    current_user=current_user
-)
+        'match.html',
+        users=users,
+        current_user_id=current_user_id,
+        current_user=current_user
+    )
 
 
 @app.route('/profile/<int:user_id>')
@@ -236,12 +227,12 @@ def profile(user_id):
     update_password_form = UpdatePasswordForm()
     delete_account_form = DeleteAccountForm()
     return render_template('profile.html', 
-    user=user,
-    user_id=user.id,
-    update_profile_form=update_profile_form,
-    update_password_form=update_password_form,
-    delete_account_form=delete_account_form
-)
+        user=user,
+        user_id=user.id,
+        update_profile_form=update_profile_form,
+        update_password_form=update_password_form,
+        delete_account_form=delete_account_form
+    )
 
 
 @app.route('/update_profile/<int:user_id>', methods=['POST'])
@@ -298,10 +289,12 @@ def chat(other_user_id):
 
     other_user = User.query.get_or_404(other_user_id)
 
+    # Mark messages as read
     unread_messages = Message.query.filter(and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id, Message.read_at.is_(None))).all()
     for msg in unread_messages:
         msg.read_at = db.func.now()
     db.session.commit()
+
     messages = Message.query.filter(or_(and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id), and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id))).order_by(Message.timestamp.asc()).all()
     
     message_form = MessageForm()
@@ -416,11 +409,20 @@ def handle_stop_typing(data):
     if room:
         emit('stop_typing', {'user_id': current_user_id}, room=room, include_self=False)
 
-if __name__ == '__main__':
+# --- CRITICAL CHANGE ---
+# Execute DB setup on import, so Gunicorn runs it.
+# This ensures 'read_at' exists even on production.
+try:
     with app.app_context():
-        ensure_created_at_column()
-        ensure_read_at_column()  # <-- این خط اضافه شد
+        # Ensure tables exist
         db.create_all()
+        # Apply custom migrations
+        ensure_created_at_column()
+        ensure_read_at_column()
+except Exception as e:
+    print(f"Database setup failed on startup: {e}")
+# -----------------------
 
+if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, host='0.0.0.0', port=port)
