@@ -508,7 +508,7 @@
             const otherUserId = {{ other_user.id }};
             const roomName = `chat-${Math.min(currentUserId, otherUserId)}-${Math.max(currentUserId, otherUserId)}`;
             
-            // Join the chat room
+            // Join chat room
             socket.emit('join_chat', { other_user_id: otherUserId });
             
             // Scroll to bottom of messages

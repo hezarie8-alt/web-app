@@ -63,7 +63,6 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
     major = db.Column(db.String(100))
-    grade = db.Column(db.String(50))
     password_hash = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())  # اضافه شده
 
@@ -82,7 +81,6 @@ GRADE_CHOICES = [('', 'مقطع خود را انتخاب کنید'), ('کارش�
 class RegistrationForm(FlaskForm):
     name = StringField('نام کاربری', validators=[DataRequired(), Length(min=4, max=100)])
     major = SelectField('رشته تحصیلی', choices=MAJOR_CHOICES, validators=[DataRequired()])
-    grade = SelectField('مقطع تحصیلی', choices=GRADE_CHOICES, validators=[DataRequired()])
     password = PasswordField('رمز عبور', validators=[DataRequired(), Length(min=6)])
     confirm_password = PasswordField('تکرار رمز عبور', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('ثبت‌نام')
@@ -103,7 +101,6 @@ class MessageForm(FlaskForm):
 class UpdateProfileForm(FlaskForm):
     name = StringField('نام کاربری', validators=[DataRequired(), Length(min=4, max=100)])
     major = SelectField('رشته تحصیلی', choices=MAJOR_CHOICES)
-    grade = SelectField('مقطع تحصیلی', choices=GRADE_CHOICES)
     submit = SubmitField('بروزرسانی پروفایل')
     def __init__(self, original_username, *args, **kwargs):
         super(UpdateProfileForm, self).__init__(*args, **kwargs)
@@ -145,7 +142,7 @@ def register():
     login_form = LoginForm()
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data, method='pbkdf2:sha256')
-        new_user = User(name=form.name.data, major=form.major.data, grade=form.grade.data, password_hash=hashed_password)
+        new_user = User(name=form.name.data, major=form.major.data, password_hash=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         flash('ثبت‌نام با موفقیت انجام شد. لطفاً وارد شوید.', 'success')
@@ -208,7 +205,6 @@ def update_profile(user_id):
     if form.validate_on_submit():
         user.name = form.name.data
         user.major = form.major.data
-        user.grade = form.grade.data
         db.session.commit()
         flash('پروفایل شما با موفقیت بروزرسانی شد.', 'success')
     return redirect(url_for('profile', user_id=user_id))

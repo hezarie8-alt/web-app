@@ -485,10 +485,6 @@
                             <span>{{ user.major }}</span>
                         </div>
                         <div class="profile-detail">
-                            <i class="material-icons">auto_stories</i>
-                            <span>{{ user.grade }}</span>
-                        </div>
-                        <div class="profile-detail">
                             <i class="material-icons">calendar_today</i>
                             <span>عضو از {{ user.created_at.strftime('%Y/%m/%d') if user.created_at else 'نامشخص' }}</span>
                         </div>
@@ -539,16 +535,6 @@
                                 {{ update_profile_form.major(class="form-select") }}
                                 {% if update_profile_form.major.errors %}
                                     {% for error in update_profile_form.major.errors %}
-                                        <div class="error-message">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                            
-                            <div class="form-group">
-                                {{ update_profile_form.grade.label(class="form-label") }}
-                                {{ update_profile_form.grade(class="form-select") }}
-                                {% if update_profile_form.grade.errors %}
-                                    {% for error in update_profile_form.grade.errors %}
                                         <div class="error-message">{{ error }}</div>
                                     {% endfor %}
                                 {% endif %}
@@ -637,7 +623,7 @@
                             </p>
                         </div>
                         
-                        <form method="POST" action="{{ url_for('delete_account', user_id=user.id) }}" onsubmit="return confirmDeleteAccount()">
+                        <form method="POST" action="{{ url_for('delete_account', user_id=user_id) }}" onsubmit="return confirmDeleteAccount()">
                             {{ delete_account_form.hidden_tag() }}
                             
                             <div class="form-actions">

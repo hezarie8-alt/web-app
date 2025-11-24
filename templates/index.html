@@ -270,6 +270,7 @@
             color: var(--primary-color);
             opacity: 0;
             transform: translateY(20px);
+            animation: fadeInUp 0.8s ease 0.3s forwards;
         }
         
         .section-subtitle {
@@ -282,6 +283,7 @@
             margin-right: auto;
             opacity: 0;
             transform: translateY(20px);
+            animation: fadeInUp 0.8s ease 0.5s forwards;
         }
         
         .features-grid {
@@ -366,6 +368,7 @@
             margin-bottom: 1.5rem;
             opacity: 0;
             transform: translateY(20px);
+            animation: fadeInUp 0.8s ease 0.3s forwards;
         }
         
         .cta-subtitle {
@@ -373,11 +376,13 @@
             margin-bottom: 2rem;
             opacity: 0;
             transform: translateY(20px);
+            animation: fadeInUp 0.8s ease 0.5s forwards;
         }
         
         .cta .btn {
             opacity: 0;
             transform: translateY(20px);
+            animation: fadeInUp 0.8s ease 0.7s forwards;
         }
         
         /* Footer */
@@ -574,7 +579,7 @@
                 <div class="feature-card">
                     <i class="material-icons feature-icon">search</i>
                     <h3 class="feature-title">جستجوی همکلاسی‌ها</h3>
-                    <p class="feature-description">بر اساس رشته و مقطع تحصیلی، همکلاسی‌ها و همکاران خود را پیدا کنید</p>
+                    <p class="feature-description">بر اساس رشته تحصیلی، همکلاسی‌ها و همکاران خود را پیدا کنید</p>
                 </div>
                 
                 <div class="feature-card">
@@ -684,13 +689,6 @@
             const featureCards = document.querySelectorAll('.feature-card');
             featureCards.forEach((card, index) => {
                 card.style.transitionDelay = `${index * 0.1}s`;
-            });
-            
-            // Animate CTA section elements
-            const ctaElements = document.querySelectorAll('.cta-title, .cta-subtitle, .cta .btn');
-            ctaElements.forEach((el, index) => {
-                el.style.animationDelay = `${index * 0.2}s`;
-                el.style.animation = 'fadeInUp 0.8s ease forwards';
             });
         });
     </script>

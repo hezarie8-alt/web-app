@@ -275,7 +275,7 @@
         /* Users Grid */
         .users-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
         }
         
@@ -335,11 +335,6 @@
             font-size: 0.9rem;
             color: var(--primary-color);
             font-weight: 500;
-        }
-        
-        .user-grade {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
         }
         
         .user-actions {
@@ -514,14 +509,6 @@
                         <i class="material-icons">code</i>
                         علوم کامپیوتر
                     </div>
-                    <div class="filter-chip {% if 'کارشناسی' in request.args.get('q', '') %}active{% endif %}">
-                        <i class="material-icons">school</i>
-                        کارشناسی
-                    </div>
-                    <div class="filter-chip {% if 'کارشناسی ارشد' in request.args.get('q', '') %}active{% endif %}">
-                        <i class="material-icons">auto_stories</i>
-                        کارشناسی ارشد
-                    </div>
                 </div>
             </section>
             
@@ -547,7 +534,6 @@
                                     <div class="user-info">
                                         <h4 class="user-name">{{ user.name }}</h4>
                                         <div class="user-major">{{ user.major }}</div>
-                                        <div class="user-grade">{{ user.grade }}</div>
                                     </div>
                                 </div>
                                 
