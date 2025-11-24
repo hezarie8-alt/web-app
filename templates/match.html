@@ -3,723 +3,631 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎓 همکلاسی یاب | جست‌وجو</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <title>جستجوی کاربران | اپلیکیشن چت</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- CSS -->
     <style>
         :root {
-            --primary-color: #0EA5E9;
-            --primary-light: #38BDF8;
-            --primary-dark: #0284C7;
-            --secondary-color: #10B981;
-            --secondary-light: #34D399;
-            --secondary-dark: #059669;
-            --accent-color: #F59E0B;
-            --success-color: #10B981;
-            --danger-color: #EF4444;
-            --warning-color: #F59E0B;
-            --info-color: #3B82F6;
-            --light-bg: #F8FAFC;
-            --white: #FFFFFF;
-            --text-dark: #1E293B;
-            --text-light: #64748B;
-            --border-color: #E2E8F0;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            --radius: 12px;
-            --radius-lg: 16px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --primary-color: #00838f;
+            --primary-light: #4fb3bf;
+            --primary-dark: #005662;
+            --secondary-color: #546e7a;
+            --text-on-primary: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --background: #f5f5f5;
+            --surface: #ffffff;
+            --error: #b71c1c;
+            --warning: #f57c00;
+            --success: #2e7d32;
+            --info: #0288d1;
         }
-
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             font-family: 'Vazirmatn', sans-serif;
-            background-color: var(--light-bg);
-            color: var(--text-dark);
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            direction: rtl;
             overflow-x: hidden;
         }
-
-        /* Background Pattern */
-        .bg-pattern {
-            position: fixed;
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* Navigation */
+        .navbar {
+            background-color: var(--primary-color);
+            color: var(--text-on-primary);
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
             top: 0;
-            left: 0;
-            width: 100%;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: var(--text-on-primary);
+            transition: transform 0.3s ease;
+        }
+        
+        .navbar-brand:hover {
+            transform: scale(1.05);
+        }
+        
+        .navbar-nav {
+            display: flex;
+            list-style: none;
+            gap: 1rem;
+        }
+        
+        .navbar-nav a {
+            color: var(--text-on-primary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .navbar-nav a::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
             height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230EA5E9' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-color: var(--primary-light);
+            transition: width 0.3s ease;
             z-index: -1;
         }
-
-        /* Navigation Bar */
-        .navbar {
-            background-color: var(--white);
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
-            padding: 0.75rem 0;
-            transition: var(--transition);
+        
+        .navbar-nav a:hover::before {
+            width: 100%;
         }
-
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: var(--primary-color) !important;
+        
+        .user-info {
             display: flex;
             align-items: center;
+            gap: 0.5rem;
         }
-
-        .navbar-brand:hover {
-            color: var(--primary-dark) !important;
+        
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+            min-height: calc(100vh - 80px);
         }
-
-        .navbar-nav .nav-link {
-            font-weight: 500;
-            color: var(--text-dark) !important;
-            margin: 0 0.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius);
-            transition: var(--transition);
-        }
-
-        .navbar-nav .nav-link:hover,
-        .navbar-nav .nav-link.active {
-            background-color: var(--primary-color);
-            color: var(--white) !important;
-        }
-
+        
         /* Search Section */
         .search-section {
-            padding: 5rem 0 3rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .search-container {
-            max-width: 900px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 2;
-        }
-
-        .page-title {
-            font-size: 2.5rem;
-            font-weight: 700;
             margin-bottom: 2rem;
-            text-align: center;
-            color: var(--primary-color);
-            position: relative;
-        }
-
-        .page-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            border-radius: 2px;
-        }
-
-        /* Search Form */
-        .search-form {
-            background-color: var(--white);
-            border-radius: var(--radius-lg);
+            background-color: var(--surface);
+            border-radius: 10px;
             padding: 1.5rem;
-            box-shadow: var(--shadow-md);
-            margin-bottom: 3rem;
-            position: relative;
-            overflow: hidden;
-            border-top: 4px solid var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-
-        .search-input-group {
-            position: relative;
+        
+        .search-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
             display: flex;
             align-items: center;
+            gap: 0.5rem;
         }
-
+        
+        .search-form {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .search-input-group {
+            flex: 1;
+            position: relative;
+        }
+        
         .search-input {
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            padding: 0.75rem 1.25rem 0.75rem 3.5rem;
-            font-size: 1.1rem;
-            transition: var(--transition);
-            flex-grow: 1;
-            background-color: var(--light-bg);
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
-
+        
         .search-input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
             outline: none;
-            background-color: var(--white);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 131, 143, 0.1);
         }
-
+        
         .search-icon {
             position: absolute;
-            right: 1.25rem;
-            color: var(--primary-color);
-            font-size: 1.2rem;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
         }
-
-        .search-clear-btn {
-            position: absolute;
-            left: 5rem;
-            background: none;
-            border: none;
-            color: var(--text-light);
-            cursor: pointer;
-            font-size: 1.2rem;
-            display: none;
-        }
-
-        .search-clear-btn:hover {
-            color: var(--danger-color);
-        }
-
+        
         .search-button {
+            padding: 0.75rem 1.5rem;
             background-color: var(--primary-color);
-            color: var(--white);
+            color: var(--text-on-primary);
             border: none;
-            padding: 0.75rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            margin-right: 1rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
             display: flex;
             align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
         }
-
+        
         .search-button:hover {
             background-color: var(--primary-dark);
             transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-
-        .search-button i {
-            margin-left: 0.5rem;
-        }
-
-        /* Filter Tags */
-        .filter-tags {
+        
+        .search-filters {
             display: flex;
+            gap: 1rem;
             flex-wrap: wrap;
-            gap: 0.75rem;
-            margin-top: 1rem;
         }
-
-        .filter-tag {
-            background-color: var(--light-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 50px;
+        
+        .filter-chip {
             padding: 0.5rem 1rem;
+            background-color: var(--background);
+            border: 1px solid #e0e0e0;
+            border-radius: 50px;
             font-size: 0.9rem;
-            color: var(--text-dark);
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-
-        .filter-tag:hover {
+        
+        .filter-chip:hover {
+            background-color: var(--primary-light);
+            color: var(--text-on-primary);
+            border-color: var(--primary-light);
+        }
+        
+        .filter-chip.active {
             background-color: var(--primary-color);
-            color: var(--white);
+            color: var(--text-on-primary);
             border-color: var(--primary-color);
         }
-
-        .filter-tag.active {
-            background-color: var(--primary-color);
-            color: var(--white);
-            border-color: var(--primary-color);
+        
+        /* Results Section */
+        .results-section {
+            margin-bottom: 2rem;
         }
-
-        /* User Cards */
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .results-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .results-count {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .sort-dropdown {
+            position: relative;
+        }
+        
+        .sort-button {
+            padding: 0.5rem 1rem;
+            background-color: var(--surface);
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .sort-button:hover {
+            background-color: var(--background);
+        }
+        
+        /* Users Grid */
         .users-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
+            gap: 1.5rem;
         }
-
+        
         .user-card {
-            background-color: var(--white);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            border-top: 4px solid var(--primary-color);
+            background-color: var(--surface);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
         }
-
+        
+        .user-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
         .user-card:hover {
             transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
         }
-
-        .user-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            margin: 0 auto 1.5rem;
-            font-size: 2.5rem;
-            font-weight: 700;
-            box-shadow: var(--shadow-md);
-            object-fit: cover;
-            border: 3px solid var(--white);
-            position: relative;
-        }
-
-        .user-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
+        
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
             margin-bottom: 1rem;
         }
-
-        .user-info {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 1.5rem;
-        }
-
-        .user-info li {
+        
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
             display: flex;
-            align-items: center;
             justify-content: center;
-            margin-bottom: 0.75rem;
-            font-size: 1rem;
-            color: var(--text-light);
+            align-items: center;
+            color: var(--text-on-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            flex-shrink: 0;
         }
-
-        .user-info i {
-            margin-left: 0.5rem;
-            color: var(--secondary-color);
-            font-size: 1.1rem;
+        
+        .user-info {
+            flex: 1;
         }
-
+        
+        .user-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+        }
+        
+        .user-major {
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .user-grade {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
         .user-actions {
             display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.5rem;
+            margin-top: 1rem;
         }
-
-        .btn-message {
-            background-color: var(--secondary-color);
-            color: var(--white);
-            border: none;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
+        
+        .action-button {
+            flex: 1;
+            padding: 0.5rem;
             display: flex;
-            align-items: center;
             justify-content: center;
-        }
-
-        .btn-message:hover {
-            background-color: var(--secondary-dark);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            color: var(--white);
-        }
-
-        .btn-message i {
-            margin-left: 0.5rem;
-        }
-
-        .btn-profile {
-            background-color: var(--light-bg);
-            color: var(--text-dark);
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 1rem;
+            align-items: center;
+            gap: 0.5rem;
+            border-radius: 4px;
             font-size: 0.9rem;
             font-weight: 500;
-            border-radius: var(--radius);
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
         }
-
-        .btn-profile:hover {
+        
+        .chat-button {
             background-color: var(--primary-color);
-            color: var(--white);
+            color: var(--text-on-primary);
+        }
+        
+        .chat-button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .profile-button {
+            background-color: var(--background);
+            color: var(--text-primary);
+            border: 1px solid #e0e0e0;
+        }
+        
+        .profile-button:hover {
+            background-color: var(--surface);
             border-color: var(--primary-color);
+            color: var(--primary-color);
         }
-
-        .btn-profile i {
-            margin-left: 0.5rem;
-        }
-
+        
         /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 4rem 2rem;
-            background-color: var(--white);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
+            padding: 3rem 1rem;
+            background-color: var(--surface);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-
+        
         .empty-icon {
             font-size: 4rem;
-            color: var(--secondary-color);
-            margin-bottom: 1.5rem;
-        }
-
-        .empty-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
+            color: var(--text-secondary);
             margin-bottom: 1rem;
         }
-
-        .empty-description {
-            font-size: 1.1rem;
-            color: var(--text-light);
-            margin-bottom: 2rem;
-        }
-
-        .btn-primary-custom {
-            display: inline-flex;
-            align-items: center;
-            background-color: var(--primary-color);
-            color: var(--white);
-            border: none;
-            padding: 0.75rem 2rem;
-            font-size: 1.1rem;
+        
+        .empty-title {
+            font-size: 1.5rem;
             font-weight: 600;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            text-decoration: none;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
         }
-
-        .btn-primary-custom:hover {
-            background-color: var(--primary-dark);
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
-            color: var(--white);
+        
+        .empty-description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
         }
-
-        .btn-primary-custom i {
-            margin-left: 0.5rem;
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-
-        /* Loading State */
-        .loading-state {
-            text-align: center;
-            padding: 2rem;
-            display: none;
-        }
-
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--border-color);
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Decorative Elements */
-        .decorative-circle {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.1;
-            z-index: -1;
-        }
-
-        .circle-1 {
-            width: 300px;
-            height: 300px;
-            background-color: var(--primary-color);
-            top: -150px;
-            left: -150px;
-        }
-
-        .circle-2 {
-            width: 200px;
-            height: 200px;
-            background-color: var(--secondary-color);
-            bottom: -100px;
-            right: -100px;
-        }
-
-        /* Animation for user cards */
-        .user-card {
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .user-card:nth-child(1) { animation-delay: 0.1s; }
-        .user-card:nth-child(2) { animation-delay: 0.2s; }
-        .user-card:nth-child(3) { animation-delay: 0.3s; }
-        .user-card:nth-child(4) { animation-delay: 0.4s; }
-        .user-card:nth-child(5) { animation-delay: 0.5s; }
-        .user-card:nth-child(6) { animation-delay: 0.6s; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Responsive Design */
+        
+        /* Responsive */
         @media (max-width: 768px) {
-            .page-title {
-                font-size: 2rem;
-            }
-
-            .users-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-
-            .user-card {
-                padding: 1.5rem;
-            }
-
-            .search-input-group {
+            .search-form {
                 flex-direction: column;
             }
-
-            .search-input {
-                border-radius: var(--radius);
-                padding-right: 3.5rem;
-                margin-bottom: 1rem;
+            
+            .search-input-group {
+                width: 100%;
             }
-
+            
             .search-button {
                 width: 100%;
-                margin-right: 0;
+                justify-content: center;
             }
-
-            .filter-tags {
+            
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .users-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .navbar .container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .navbar-nav {
+                flex-wrap: wrap;
                 justify-content: center;
             }
         }
     </style>
 </head>
 <body>
-    <div class="bg-pattern"></div>
-    
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg">
+    <!-- Navigation -->
+    <nav class="navbar">
         <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="bi bi-mortarboard-fill ms-2"></i>
-                همکلاسی یاب
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            <i class="bi bi-house-fill ms-1"></i>
-                            خانه
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/register">
-                            <i class="bi bi-person-plus-fill ms-1"></i>
-                            ثبت اطلاعات
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/match">
-                            <i class="bi bi-search ms-1"></i>
-                            جست‌وجو
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/about">
-                            <i class="bi bi-info-circle-fill ms-1"></i>
-                            درباره برنامه
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            <a href="{{ url_for('index') }}" class="navbar-brand">اپلیکیشن چت</a>
+            
+            <ul class="navbar-nav">
+                <li><a href="{{ url_for('index') }}">صفحه اصلی</a></li>
+                <li><a href="{{ url_for('about') }}">درباره ما</a></li>
+                <li><a href="{{ url_for('match') }}">جستجوی کاربران</a></li>
+                <li><a href="{{ url_for('inbox', user_id=current_user.id) }}">صندوق پیام</a></li>
+                <li><a href="{{ url_for('profile', user_id=current_user.id) }}">پروفایل</a></li>
+                <li><a href="{{ url_for('logout') }}">خروج</a></li>
+            </ul>
+            
+            {% if current_user %}
+                <div class="user-info">
+                    <span>{{ current_user.name }}</span>
+                    <i class="material-icons">account_circle</i>
+                </div>
+            {% endif %}
         </div>
     </nav>
-
-    <!-- Search Section -->
-    <section class="search-section">
-        <div class="decorative-circle circle-1"></div>
-        <div class="decorative-circle circle-2"></div>
+    
+    <!-- Main Content -->
+    <main class="main-content">
         <div class="container">
-            <div class="search-container">
-                <h2 class="page-title">
-                    <i class="bi bi-search"></i>
-                    جست‌وجوی همکلاسی‌ها
+            <!-- Search Section -->
+            <section class="search-section">
+                <h2 class="search-title">
+                    <i class="material-icons">search</i>
+                    جستجوی کاربران
                 </h2>
-
-                <!-- Search Form -->
-                <form method="GET" action="/match" class="search-form" id="searchForm">
+                
+                <form action="{{ url_for('match') }}" method="GET" class="search-form">
                     <div class="search-input-group">
-                        <i class="bi bi-search search-icon"></i>
-                        <input type="text" name="q" class="search-input" id="searchInput" placeholder="جست‌وجو بر اساس رشته یا نام..." value="{{ request.args.get('q') or '' }}">
-                        <button type="button" class="search-clear-btn" id="clearSearchBtn" title="پاک کردن">
-                            <i class="bi bi-x-circle"></i>
-                        </button>
-                        <button type="submit" class="search-button" id="searchButton">
-                            <i class="bi bi-search"></i>
-                            جست‌وجو
-                        </button>
+                        <i class="material-icons search-icon">search</i>
+                        <input type="text" name="q" class="search-input" placeholder="جستجو بر اساس نام یا رشته تحصیلی..." value="{{ request.args.get('q', '') }}">
                     </div>
-                    
-                    <!-- Filter Tags -->
-                    <div class="filter-tags">
-                        <div class="filter-tag" data-filter="computer">
-                            <i class="bi bi-laptop ms-1"></i>
-                            کامپیوتر
-                        </div>
-                        <div class="filter-tag" data-filter="engineering">
-                            <i class="bi bi-gear ms-1"></i>
-                            مهندسی
-                        </div>
-                        <div class="filter-tag" data-filter="medicine">
-                            <i class="bi bi-heart-pulse ms-1"></i>
-                            پزشکی
-                        </div>
-                        <div class="filter-tag" data-filter="humanities">
-                            <i class="bi bi-book ms-1"></i>
-                            علوم انسانی
-                        </div>
-                        <div class="filter-tag" data-filter="art">
-                            <i class="bi bi-palette ms-1"></i>
-                            هنر
-                        </div>
-                    </div>
+                    <button type="submit" class="search-button">
+                        <i class="material-icons">search</i>
+                        جستجو
+                    </button>
                 </form>
-
-                <!-- Loading State -->
-                <div class="loading-state" id="loadingState">
-                    <div class="loading-spinner"></div>
-                    <p>در حال جستجو...</p>
+                
+                <div class="search-filters">
+                    <div class="filter-chip {% if 'مهندسی کامپیوتر' in request.args.get('q', '') %}active{% endif %}">
+                        <i class="material-icons">computer</i>
+                        مهندسی کامپیوتر
+                    </div>
+                    <div class="filter-chip {% if 'علوم کامپیوتر' in request.args.get('q', '') %}active{% endif %}">
+                        <i class="material-icons">code</i>
+                        علوم کامپیوتر
+                    </div>
+                    <div class="filter-chip {% if 'کارشناسی' in request.args.get('q', '') %}active{% endif %}">
+                        <i class="material-icons">school</i>
+                        کارشناسی
+                    </div>
+                    <div class="filter-chip {% if 'کارشناسی ارشد' in request.args.get('q', '') %}active{% endif %}">
+                        <i class="material-icons">auto_stories</i>
+                        کارشناسی ارشد
+                    </div>
                 </div>
-
+            </section>
+            
+            <!-- Results Section -->
+            <section class="results-section">
+                <div class="results-header">
+                    <h3 class="results-title">نتایج جستجو</h3>
+                    <div class="results-count">
+                        {% if users %}
+                            {{ users|length }} کاربر یافت شد
+                        {% else %}
+                            هیچ کاربری یافت نشد
+                        {% endif %}
+                    </div>
+                </div>
+                
                 {% if users %}
-                    <div class="users-grid" id="usersGrid">
+                    <div class="users-grid">
                         {% for user in users %}
-                        <div class="user-card">
-                            <img src="https://ui-avatars.com/api/?name={{ user.name|urlencode }}&background=0EA5E9&color=fff&size=128" alt="{{ user.name }}" class="user-avatar">
-                            
-                            <h3 class="user-name">{{ user.name }}</h3>
-                            <ul class="user-info">
-                                <li>
-                                    <i class="bi bi-mortarboard"></i>
-                                    رشته: {{ user.major }}
-                                </li>
-                                <li>
-                                    <i class="bi bi-award"></i>
-                                    مقطع: {{ user.grade }}
-                                </li>
-                            </ul>
-                            <div class="user-actions">
-                                <a href="/chat/{{ user.id }}" class="btn-message">
-                                    <i class="bi bi-envelope"></i>
-                                    ارسال پیام
-                                </a>
-                                <a href="/profile/{{ user.id }}" class="btn-profile">
-                                    <i class="bi bi-person"></i>
-                                    پروفایل
-                                </a>
+                            <div class="user-card">
+                                <div class="user-header">
+                                    <div class="user-avatar">{{ user.name[0] }}</div>
+                                    <div class="user-info">
+                                        <h4 class="user-name">{{ user.name }}</h4>
+                                        <div class="user-major">{{ user.major }}</div>
+                                        <div class="user-grade">{{ user.grade }}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="user-actions">
+                                    <a href="{{ url_for('chat', other_user_id=user.id) }}" class="action-button chat-button">
+                                        <i class="material-icons">chat</i>
+                                        چت
+                                    </a>
+                                    <a href="{{ url_for('profile', user_id=user.id) }}" class="action-button profile-button">
+                                        <i class="material-icons">person</i>
+                                        پروفایل
+                                    </a>
+                                </div>
                             </div>
-                        </div>
                         {% endfor %}
                     </div>
                 {% else %}
                     <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="bi bi-people"></i>
-                        </div>
-                        <h3 class="empty-title">هیچ همکلاسی‌ای پیدا نشد</h3>
-                        <p class="empty-description">
-                            با جستجوی کلمات کلیدی مختلف، همکلاسی‌های خود را پیدا کنید.
-                        </p>
-                        <a href="/" class="btn-primary-custom">
-                            <i class="bi bi-house-door"></i>
-                            بازگشت به صفحه اصلی
+                        <i class="material-icons empty-icon">search_off</i>
+                        <h3 class="empty-title">کاربری یافت نشد</h3>
+                        <p class="empty-description">با کلمات کلیدی دیگر جستجو کنید یا فیلترها را تغییر دهید</p>
+                        <a href="{{ url_for('match') }}" class="action-button chat-button">
+                            <i class="material-icons">refresh</i>
+                            نمایش همه کاربران
                         </a>
                     </div>
                 {% endif %}
-            </div>
+            </section>
         </div>
-    </section>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </main>
+    
+    <!-- JavaScript for animations -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('searchInput');
-            const clearBtn = document.getElementById('clearSearchBtn');
-            const searchForm = document.getElementById('searchForm');
-            const searchButton = document.getElementById('searchButton');
-            const loadingState = document.getElementById('loadingState');
-            const usersGrid = document.getElementById('usersGrid');
-            const filterTags = document.querySelectorAll('.filter-tag');
-            
-            // Show/hide clear button based on input content
-            searchInput.addEventListener('input', function() {
-                if (this.value.length > 0) {
-                    clearBtn.style.display = 'block';
-                } else {
-                    clearBtn.style.display = 'none';
+        // Scroll animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
                 }
             });
-
-            // Clear search input
-            clearBtn.addEventListener('click', function() {
-                searchInput.value = '';
-                clearBtn.style.display = 'none';
-                searchInput.focus();
-            });
-
-            // Add loading state to search button
-            searchForm.addEventListener('submit', function() {
-                searchButton.disabled = true;
-                searchButton.innerHTML = '<i class="bi bi-hourglass-split"></i> در حال جستجو...';
-                loadingState.style.display = 'block';
-                
-                // Simulate loading time
-                setTimeout(function() {
-                    loadingState.style.display = 'none';
-                }, 1000);
+        }, observerOptions);
+        
+        // Observe all elements with animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const userCards = document.querySelectorAll('.user-card');
+            
+            userCards.forEach((card, index) => {
+                card.style.transitionDelay = `${index * 0.1}s`;
+                observer.observe(card);
             });
             
-            // Filter tags functionality
-            filterTags.forEach(tag => {
-                tag.addEventListener('click', function() {
-                    // Remove active class from all tags
-                    filterTags.forEach(t => t.classList.remove('active'));
+            // Filter chips click handler
+            const filterChips = document.querySelectorAll('.filter-chip');
+            filterChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const searchInput = document.querySelector('.search-input');
+                    const chipText = chip.textContent.trim();
                     
-                    // Add active class to clicked tag
-                    this.classList.add('active');
+                    // Toggle active class
+                    chip.classList.toggle('active');
                     
-                    // Update search input with filter value
-                    const filterValue = this.getAttribute('data-filter');
-                    searchInput.value = filterValue;
-                    clearBtn.style.display = 'block';
+                    // Update search input
+                    if (chip.classList.contains('active')) {
+                        if (searchInput.value && !searchInput.value.includes(chipText)) {
+                            searchInput.value += ' ' + chipText;
+                        } else if (!searchInput.value) {
+                            searchInput.value = chipText;
+                        }
+                    } else {
+                        searchInput.value = searchInput.value.replace(chipText, '').trim();
+                    }
                     
                     // Submit form
-                    searchForm.submit();
+                    document.querySelector('.search-form').submit();
                 });
             });
         });

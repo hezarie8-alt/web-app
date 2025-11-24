@@ -31,6 +31,9 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+# دیکشنری برای نگهداری وضعیت آنلاین کاربران
+online_users = {}
+
 # --- دکوراتور و توابع کمکی ---
 def login_required(f):
     from functools import wraps
@@ -41,6 +44,10 @@ def login_required(f):
             return redirect(url_for('show_auth_page'))
         return f(*args, **kwargs)
     return decorated_function
+
+# تابع کمکی برای بررسی وضعیت آنلاین کاربر
+def is_user_online(user_id):
+    return user_id in online_users
 
 # --- Context Processor برای دسترسی به کاربر فعلی در تمام قالب‌ها ---
 @app.context_processor
@@ -58,6 +65,7 @@ class User(db.Model):
     major = db.Column(db.String(100))
     grade = db.Column(db.String(50))
     password_hash = db.Column(db.String(128), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())  # اضافه شده
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -88,7 +96,6 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField('مرا به خاطر بسپار')
     submit = SubmitField('ورود')
 
-# --- مشکل 4: فرم MessageForm اضافه شد ---
 class MessageForm(FlaskForm):
     content = TextAreaField('متن پیام', validators=[DataRequired(), Length(min=1, max=1000)])
     submit = SubmitField('ارسال پیام')
@@ -142,7 +149,6 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         flash('ثبت‌نام با موفقیت انجام شد. لطفاً وارد شوید.', 'success')
-        # --- مشکل 10: کاربر پس از ثبت‌نام به صفحه ورود هدایت می‌شود ---
         return redirect(url_for('show_auth_page'))
     return render_template('register.html', form=form, login_form=login_form)
 
@@ -177,7 +183,6 @@ def match():
         users = query.all()
     return render_template('match.html', users=users, current_user_id=current_user_id)
 
-# --- مشکل 6: مسیر پروفایل با user_id و بررسی امنیتی ---
 @app.route('/profile/<int:user_id>')
 @login_required
 def profile(user_id):
@@ -191,7 +196,6 @@ def profile(user_id):
     delete_account_form = DeleteAccountForm()
     return render_template('profile.html', user=user, update_profile_form=update_profile_form, update_password_form=update_password_form, delete_account_form=delete_account_form)
 
-# --- مشکل 7: مسیر بروزرسانی پروفایل با user_id و بررسی امنیتی ---
 @app.route('/update_profile/<int:user_id>', methods=['POST'])
 @login_required
 def update_profile(user_id):
@@ -224,7 +228,6 @@ def update_password():
             flash('رمز عبور فعلی اشتباه است.', 'error')
     return redirect(url_for('profile', user_id=current_user_id))
 
-# --- مشکل 8: مسیر حذف حساب با user_id و بررسی امنیتی ---
 @app.route('/delete_account/<int:user_id>', methods=['POST'])
 @login_required
 def delete_account(user_id):
@@ -248,15 +251,13 @@ def chat(other_user_id):
 
     other_user = User.query.get_or_404(other_user_id)
     
-    # --- مشکل 2: منطق خواندن پیام‌ها در مسیر چت پیاده‌سازی شد (قبلاً وجود داشت) ---
+    # علامت‌گذاری پیام‌های خوانده نشده به عنوان خوانده شده
     unread_messages = Message.query.filter(and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id, Message.read_at.is_(None))).all()
     for msg in unread_messages:
         msg.read_at = db.func.now()
-        # اطلاع‌رسانی به فرانت برای تغییر وضعیت پیام (اختیاری)
-        # room_id = f"chat-{min(msg.sender_id, msg.receiver_id)}-{max(msg.sender_id, msg.receiver_id)}"
-        # socketio.emit('message_read', {'message_id': msg.id}, room=room_id)
     db.session.commit()
 
+    # دریافت پیام‌های گفتگو
     messages = Message.query.filter(or_(and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id), and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id))).order_by(Message.timestamp.asc()).all()
     
     # ارسال فرم به قالب برای استفاده در ارسال پیام (fallback)
@@ -264,7 +265,6 @@ def chat(other_user_id):
     
     return render_template('chat.html', other_user=other_user, messages=messages, message_form=message_form)
 
-# --- مشکل 1: اضافه شدن مسیر جداگانه برای ارسال پیام (Fallback) ---
 @app.route('/send_message/<int:other_user_id>', methods=['POST'])
 @login_required
 def send_message(other_user_id):
@@ -286,7 +286,7 @@ def inbox(user_id):
     if current_user_id != user_id:
         abort(403)
 
-    # --- مشکل 3: کوئری بهینه برای یافتن گفتگوها (قبلاً به درستی پیاده‌سازی شده بود) ---
+    # پیدا کردن کاربرانی که با آن‌ها گفتگو داشته‌ایم
     sent_to_users = db.session.query(Message.receiver_id).filter(Message.sender_id == current_user_id).distinct()
     received_from_users = db.session.query(Message.sender_id).filter(Message.receiver_id == current_user_id).distinct()
     other_users_ids = sent_to_users.union(received_from_users).all()
@@ -312,11 +312,17 @@ def inbox(user_id):
 # --- هندلرهای Socket.IO برای چت آنی ---
 @socketio.on('connect')
 def handle_connect():
-    print('Client connected')
+    current_user_id = session.get('current_user_id')
+    if current_user_id:
+        online_users[current_user_id] = True
+        print(f'Client {current_user_id} connected')
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print('Client disconnected')
+    current_user_id = session.get('current_user_id')
+    if current_user_id and current_user_id in online_users:
+        del online_users[current_user_id]
+        print(f'Client {current_user_id} disconnected')
 
 @socketio.on('join_chat')
 def handle_join_chat(data):
@@ -328,7 +334,6 @@ def handle_join_chat(data):
     user = User.query.get(current_user_id)
     emit('status_message', {'msg': f"{user.name} به گفتگو پیوست.", 'type': 'join'}, room=room_id, include_self=False)
 
-# --- مشکل 5: تابع Socket.IO هماهنگ با فرانت (قبلاً به درستی پیاده‌سازی شده بود) ---
 @socketio.on('send_message')
 def handle_send_message(data):
     current_user_id = session.get('current_user_id')
@@ -351,6 +356,25 @@ def handle_send_message(data):
         'sender_id': current_user_id,
         'message_id': msg.id
     }, room=room_id)
+
+# هندلرهای جدید برای تایپ کردن
+@socketio.on('typing')
+def handle_typing(data):
+    current_user_id = session.get('current_user_id')
+    if not current_user_id: return
+    
+    room = data.get('room')
+    if room:
+        emit('typing', {'user_id': current_user_id}, room=room, include_self=False)
+
+@socketio.on('stop_typing')
+def handle_stop_typing(data):
+    current_user_id = session.get('current_user_id')
+    if not current_user_id: return
+    
+    room = data.get('room')
+    if room:
+        emit('stop_typing', {'user_id': current_user_id}, room=room, include_self=False)
 
 
 if __name__ == '__main__':

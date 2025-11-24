@@ -3,631 +3,473 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📬 گفتگوها</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <title>صندوق پیام | اپلیکیشن چت</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    
+    <!-- CSS -->
     <style>
         :root {
-            --primary-color: #0EA5E9;
-            --primary-light: #38BDF8;
-            --primary-dark: #0284C7;
-            --secondary-color: #10B981;
-            --secondary-light: #34D399;
-            --secondary-dark: #059669;
-            --accent-color: #F59E0B;
-            --success-color: #10B981;
-            --danger-color: #EF4444;
-            --warning-color: #F59E0B;
-            --info-color: #3B82F6;
-            --light-bg: #F8FAFC;
-            --white: #FFFFFF;
-            --text-dark: #1E293B;
-            --text-light: #64748B;
-            --border-color: #E2E8F0;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            --radius: 12px;
-            --radius-lg: 16px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --primary-color: #00838f;
+            --primary-light: #4fb3bf;
+            --primary-dark: #005662;
+            --secondary-color: #546e7a;
+            --text-on-primary: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --background: #f5f5f5;
+            --surface: #ffffff;
+            --error: #b71c1c;
+            --warning: #f57c00;
+            --success: #2e7d32;
+            --info: #0288d1;
         }
-
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             font-family: 'Vazirmatn', sans-serif;
-            background-color: var(--light-bg);
-            color: var(--text-dark);
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            direction: rtl;
             overflow-x: hidden;
         }
-
-        /* Navigation Bar */
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* Navigation */
         .navbar {
-            background-color: var(--white);
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
-            padding: 0.75rem 0;
-            transition: var(--transition);
-        }
-
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: var(--primary-color) !important;
-            display: flex;
-            align-items: center;
-        }
-
-        .navbar-brand:hover {
-            color: var(--primary-dark) !important;
-        }
-
-        .navbar-nav .nav-link {
-            font-weight: 500;
-            color: var(--text-dark) !important;
-            margin: 0 0.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius);
-            transition: var(--transition);
-        }
-
-        .navbar-nav .nav-link:hover,
-        .navbar-nav .nav-link.active {
             background-color: var(--primary-color);
-            color: var(--white) !important;
-        }
-
-        /* Main Chat List Container */
-        .chat-list-container {
-            max-width: 900px;
-            margin: 2rem auto;
-            background-color: var(--white);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
-            overflow: hidden;
-            position: relative;
-        }
-
-        .chat-list-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            text-align: center;
-            position: relative;
+            color: var(--text-on-primary);
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
         }
         
-        .chat-list-header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            border-radius: 2px;
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .chat-list-header h2 {
+        .navbar-brand {
             font-size: 1.5rem;
             font-weight: 700;
-            color: var(--primary-color);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .chat-list-header h2 i {
-            margin-left: 0.5rem;
-        }
-        
-        /* Search Bar */
-        .search-container {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            background-color: rgba(14, 165, 233, 0.05);
-        }
-        
-        .search-input-group {
-            position: relative;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 3rem;
-            border: 1px solid var(--border-color);
-            border-radius: 50px;
-            font-size: 0.95rem;
-            transition: var(--transition);
-            background-color: var(--white);
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
-        }
-        
-        .search-icon {
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-light);
-            font-size: 1.1rem;
-        }
-        
-        .clear-search {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-light);
-            cursor: pointer;
-            font-size: 1.1rem;
-            display: none;
-        }
-        
-        .clear-search:hover {
-            color: var(--danger-color);
-        }
-
-        /* Conversation List */
-        .conversation-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            max-height: calc(100vh - 300px);
-            overflow-y: auto;
-        }
-
-        /* Individual Conversation Item */
-        .conversation-card {
-            display: flex;
-            align-items: center;
-            padding: 1rem 1.5rem;
             text-decoration: none;
-            color: inherit;
-            border-bottom: 1px solid var(--border-color);
-            transition: var(--transition);
-            position: relative;
+            color: var(--text-on-primary);
+            transition: transform 0.3s ease;
         }
         
-        .conversation-card:hover {
-            background-color: var(--light-bg);
-        }
-        
-        .conversation-card:last-child {
-            border-bottom: none;
-        }
-        
-        .conversation-card.unread {
-            background-color: rgba(14, 165, 233, 0.05);
-        }
-        
-        .conversation-card.unread:hover {
-            background-color: rgba(14, 165, 233, 0.1);
-        }
-
-        .conversation-avatar-container {
-            position: relative;
-            margin-left: 1rem;
-        }
-        
-        .conversation-avatar {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            object-fit: cover;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-        }
-        
-        .conversation-card:hover .conversation-avatar {
+        .navbar-brand:hover {
             transform: scale(1.05);
         }
         
-        .online-indicator {
-            position: absolute;
-            bottom: 2px;
-            left: 2px;
-            width: 14px;
-            height: 14px;
-            background-color: var(--success-color);
-            border: 2px solid var(--white);
-            border-radius: 50%;
+        .navbar-nav {
+            display: flex;
+            list-style: none;
+            gap: 1rem;
         }
         
-        .offline-indicator {
-            position: absolute;
-            bottom: 2px;
-            left: 2px;
-            width: 14px;
-            height: 14px;
-            background-color: var(--text-light);
-            border: 2px solid var(--white);
-            border-radius: 50%;
-        }
-
-        .conversation-details {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            min-width: 0;
-            margin-right: 1rem;
-        }
-
-        .conversation-name {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 0.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .conversation-name.unread {
-            color: var(--primary-color);
-        }
-
-        .last-message {
-            font-size: 0.95rem;
-            color: var(--text-light);
-            white-space: nowrap;
+        .navbar-nav a {
+            color: var(--text-on-primary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            position: relative;
             overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
         }
         
-        .last-message.unread {
-            color: var(--text-dark);
-            font-weight: 500;
-        }
-
-        .conversation-meta {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            font-size: 0.8rem;
-            color: var(--text-light);
-            margin-left: 0.5rem;
+        .navbar-nav a::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 100%;
+            background-color: var(--primary-light);
+            transition: width 0.3s ease;
+            z-index: -1;
         }
         
-        .last-message-time {
-            margin-bottom: 0.25rem;
+        .navbar-nav a:hover::before {
+            width: 100%;
+        }
+        
+        .user-info {
             display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+            min-height: calc(100vh - 80px);
+        }
+        
+        /* Inbox Header */
+        .inbox-header {
+            background-color: var(--surface);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
             align-items: center;
         }
         
-        .last-message-time i {
-            margin-left: 0.25rem;
+        .inbox-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .inbox-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .action-button {
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: var(--text-on-primary);
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .action-button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Conversations List */
+        .conversations-container {
+            background-color: var(--surface);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        
+        .conversations-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .conversations-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .conversations-count {
+            color: var(--text-secondary);
             font-size: 0.9rem;
         }
         
-        /* Unread Count Badge */
-        .unread-count {
+        .conversations-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .conversation-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .conversation-item:hover {
+            background-color: rgba(0, 131, 143, 0.05);
+        }
+        
+        .conversation-item.unread {
+            background-color: rgba(0, 131, 143, 0.05);
+        }
+        
+        .conversation-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-on-primary);
+            font-size: 1.2rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-left: 1rem;
+        }
+        
+        .conversation-content {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .conversation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+        
+        .conversation-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .conversation-time {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .conversation-message {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .conversation-unread {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
             background-color: var(--primary-color);
-            color: var(--white);
+            color: var(--text-on-primary);
             font-size: 0.75rem;
             font-weight: 700;
-            padding: 0.2rem 0.5rem;
-            border-radius: 50px;
-            min-width: 22px;
-            text-align: center;
-            box-shadow: var(--shadow-sm);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 0.5rem;
         }
         
         /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 4rem 2rem;
+            padding: 3rem 1rem;
+            background-color: var(--surface);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         
         .empty-icon {
             font-size: 4rem;
-            color: var(--secondary-color);
-            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
         }
         
         .empty-title {
             font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
         }
         
         .empty-description {
-            font-size: 1.1rem;
-            color: var(--text-light);
-            margin-bottom: 2rem;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
         }
         
-        .btn-primary-custom {
-            display: inline-flex;
-            align-items: center;
-            background-color: var(--primary-color);
-            color: var(--white);
-            border: none;
-            padding: 0.75rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 50px;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            text-decoration: none;
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
-        .btn-primary-custom:hover {
-            background-color: var(--primary-dark);
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
-            color: var(--white);
-        }
-        
-        .btn-primary-custom i {
-            margin-left: 0.5rem;
-        }
-        
-        /* Floating Action Button */
-        .fab {
-            position: fixed;
-            bottom: 2rem;
-            left: 2rem;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background-color: var(--secondary-color);
-            color: var(--white);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--shadow-lg);
-            font-size: 1.5rem;
-            text-decoration: none;
-            transition: var(--transition);
-            z-index: 1000;
-        }
-        
-        .fab:hover {
-            background-color: var(--secondary-dark);
-            transform: scale(1.1);
-            color: var(--white);
-        }
-        
-        /* Scrollbar Styling */
-        .conversation-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .conversation-list::-webkit-scrollbar-track {
-            background: var(--light-bg);
-        }
-        
-        .conversation-list::-webkit-scrollbar-thumb {
-            background-color: var(--border-color);
-            border-radius: 3px;
-        }
-        
-        .conversation-list::-webkit-scrollbar-thumb:hover {
-            background-color: var(--text-light);
-        }
-        
-        /* Animation for conversation cards */
-        .conversation-card {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        .conversation-card:nth-child(1) { animation-delay: 0.05s; }
-        .conversation-card:nth-child(2) { animation-delay: 0.1s; }
-        .conversation-card:nth-child(3) { animation-delay: 0.15s; }
-        .conversation-card:nth-child(4) { animation-delay: 0.2s; }
-        .conversation-card:nth-child(5) { animation-delay: 0.25s; }
-        .conversation-card:nth-child(6) { animation-delay: 0.3s; }
-        .conversation-card:nth-child(7) { animation-delay: 0.35s; }
-        .conversation-card:nth-child(8) { animation-delay: 0.4s; }
-        .conversation-card:nth-child(9) { animation-delay: 0.45s; }
-        .conversation-card:nth-child(10) { animation-delay: 0.5s; }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Responsive Design */
+        /* Responsive */
         @media (max-width: 768px) {
-            .chat-list-container {
-                margin: 1rem;
-                border-radius: 0;
+            .inbox-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
             }
             
-            .conversation-card {
-                padding: 0.75rem 1rem;
+            .conversations-header {
+                flex-direction: column;
+                gap: 0.5rem;
+                text-align: center;
             }
             
-            .conversation-avatar {
-                width: 48px;
-                height: 48px;
+            .navbar .container {
+                flex-direction: column;
+                gap: 1rem;
             }
             
-            .conversation-name {
-                font-size: 1rem;
-            }
-            
-            .last-message {
-                font-size: 0.9rem;
-            }
-            
-            .fab {
-                bottom: 1rem;
-                left: 1rem;
-                width: 50px;
-                height: 50px;
-                font-size: 1.3rem;
+            .navbar-nav {
+                flex-wrap: wrap;
+                justify-content: center;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg">
+    <!-- Navigation -->
+    <nav class="navbar">
         <div class="container">
-            <a class="navbar-brand" href="/">
-                <i class="bi bi-mortarboard-fill ms-2"></i>
-                همکلاسی یاب
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            <i class="bi bi-house-fill ms-1"></i>
-                            خانه
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/match">
-                            <i class="bi bi-search ms-1"></i>
-                            جست‌وجو
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/inbox/{{ current_user_id }}">
-                            <i class="bi bi-chat-dots ms-1"></i>
-                            گفتگوها
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/profile">
-                            <i class="bi bi-person-circle ms-1"></i>
-                            پروفایل من
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/about">
-                            <i class="bi bi-info-circle-fill ms-1"></i>
-                            درباره برنامه
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            <a href="{{ url_for('index') }}" class="navbar-brand">اپلیکیشن چت</a>
+            
+            <ul class="navbar-nav">
+                <li><a href="{{ url_for('index') }}">صفحه اصلی</a></li>
+                <li><a href="{{ url_for('about') }}">درباره ما</a></li>
+                <li><a href="{{ url_for('match') }}">جستجوی کاربران</a></li>
+                <li><a href="{{ url_for('inbox', user_id=current_user.id) }}">صندوق پیام</a></li>
+                <li><a href="{{ url_for('profile', user_id=current_user.id) }}">پروفایل</a></li>
+                <li><a href="{{ url_for('logout') }}">خروج</a></li>
+            </ul>
+            
+            {% if current_user %}
+                <div class="user-info">
+                    <span>{{ current_user.name }}</span>
+                    <i class="material-icons">account_circle</i>
+                </div>
+            {% endif %}
         </div>
     </nav>
-
+    
     <!-- Main Content -->
-    <main class="chat-list-container">
-        <div class="chat-list-header">
-            <h2><i class="bi bi-chat-dots"></i> گفتگوهای شما</h2>
-        </div>
-        
-        <!-- Search Bar -->
-        <div class="search-container">
-            <div class="search-input-group">
-                <i class="bi bi-search search-icon"></i>
-                <input type="text" class="search-input" id="searchInput" placeholder="جستجوی گفتگوها...">
-                <i class="bi bi-x-circle clear-search" id="clearSearch"></i>
-            </div>
-        </div>
-
-        {% if conversations %}
-            <ul class="conversation-list" id="conversationList">
-                {% for conv in conversations %}
-                <a href="{{ url_for('chat', other_user_id=conv.other_user_id) }}" class="conversation-card {{ 'unread' if conv.has_unread else '' }}">
-                    <div class="conversation-avatar-container">
-                        <img src="https://ui-avatars.com/api/?name={{ conv.other_user_name|urlencode }}&background=0EA5E9&color=fff&size=128" alt="{{ conv.other_user_name }}" class="conversation-avatar">
-                        <div class="{{ 'online-indicator' if conv.is_online else 'offline-indicator' }}"></div>
-                    </div>
-                    <div class="conversation-details">
-                        <div class="conversation-name {{ 'unread' if conv.has_unread else '' }}">
-                            {{ conv.other_user_name }}
-                            {% if conv.unread_count > 0 %}
-                                <span class="unread-count">{{ conv.unread_count }}</span>
-                            {% endif %}
-                        </div>
-                        <div class="last-message {{ 'unread' if conv.has_unread else '' }}">{{ conv.last_message_content }}</div>
-                    </div>
-                    <div class="conversation-meta">
-                        <div class="last-message-time">
-                            <i class="bi bi-clock"></i>
-                            {{ conv.last_message_timestamp.strftime('%H:%M') }}
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="bi bi-chat-left-dots"></i>
+    <main class="main-content">
+        <div class="container">
+            <!-- Inbox Header -->
+            <div class="inbox-header">
+                <h1 class="inbox-title">
+                    <i class="material-icons">inbox</i>
+                    صندوق پیام
+                </h1>
+                
+                <div class="inbox-actions">
+                    <a href="{{ url_for('match') }}" class="action-button">
+                        <i class="material-icons">person_add</i>
+                        یافتن کاربران جدید
+                    </a>
                 </div>
-                <h3 class="empty-title">هنوز گفتگویی نداشته‌اید</h3>
-                <p class="empty-description">برای شروع، به صفحه جستجو بروید و برای همکلاسی‌های خود پیام ارسال کنید.</p>
-                <a href="{{ url_for('match') }}" class="btn-primary-custom">
-                    <i class="bi bi-people ms-2"></i> پیدا کردن همکلاسی
-                </a>
             </div>
-        {% endif %}
+            
+            <!-- Conversations List -->
+            <div class="conversations-container">
+                <div class="conversations-header">
+                    <h2 class="conversations-title">گفتگوها</h2>
+                    <div class="conversations-count">
+                        {% if conversations %}
+                            {{ conversations|length }} گفتگو
+                        {% else %}
+                            هیچ گفتگویی
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="conversations-list">
+                    {% if conversations %}
+                        {% for conversation in conversations %}
+                            <a href="{{ url_for('chat', other_user_id=conversation.other_user_id) }}" class="conversation-item {% if conversation.has_unread %}unread{% endif %}">
+                                <div class="conversation-avatar">{{ conversation.other_user_name[0] }}</div>
+                                
+                                <div class="conversation-content">
+                                    <div class="conversation-header">
+                                        <div class="conversation-name">{{ conversation.other_user_name }}</div>
+                                        <div class="conversation-time">{{ conversation.last_message_timestamp.strftime('%H:%M') if conversation.last_message_timestamp else '' }}</div>
+                                    </div>
+                                    
+                                    <div class="conversation-message">{{ conversation.last_message_content }}</div>
+                                </div>
+                                
+                                {% if conversation.has_unread %}
+                                    <div class="conversation-unread">1</div>
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="material-icons empty-icon">chat_bubble_outline</i>
+                            <h3 class="empty-title">هیچ گفتگویی ندارید</h3>
+                            <p class="empty-description">برای شروع گفتگو، کاربران جدیدی را پیدا و با آن‌ها ارتباط برقرار کنید</p>
+                            <a href="{{ url_for('match') }}" class="action-button">
+                                <i class="material-icons">search</i>
+                                جستجوی کاربران
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </main>
     
-    <!-- Floating Action Button -->
-    <a href="{{ url_for('match') }}" class="fab" title="پیدا کردن همکلاسی جدید">
-        <i class="bi bi-person-plus"></i>
-    </a>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JavaScript for animations -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('searchInput');
-            const clearSearch = document.getElementById('clearSearch');
-            const conversationList = document.getElementById('conversationList');
-            const conversationCards = document.querySelectorAll('.conversation-card');
-            
-            // Show/hide clear button based on input content
-            searchInput.addEventListener('input', function() {
-                if (this.value.length > 0) {
-                    clearSearch.style.display = 'block';
-                } else {
-                    clearSearch.style.display = 'none';
+        // Scroll animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
                 }
-                
-                // Filter conversations based on search input
-                filterConversations(this.value);
             });
+        }, observerOptions);
+        
+        // Observe all elements with animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const conversationItems = document.querySelectorAll('.conversation-item');
             
-            // Clear search input
-            clearSearch.addEventListener('click', function() {
-                searchInput.value = '';
-                clearSearch.style.display = 'none';
-                searchInput.focus();
-                filterConversations('');
+            conversationItems.forEach((item, index) => {
+                item.style.transitionDelay = `${index * 0.05}s`;
+                observer.observe(item);
             });
-            
-            // Filter conversations function
-            function filterConversations(searchTerm) {
-                const term = searchTerm.toLowerCase();
-                
-                conversationCards.forEach(card => {
-                    const name = card.querySelector('.conversation-name').textContent.toLowerCase();
-                    const message = card.querySelector('.last-message').textContent.toLowerCase();
-                    
-                    if (name.includes(term) || message.includes(term)) {
-                        card.style.display = 'flex';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            }
         });
     </script>
 </body>

@@ -3,619 +3,661 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}🎓 همکلاسی یاب | صفحه اصلی{% endblock %}</title>
+    <title>صفحه اصلی | اپلیکیشن چت</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- CSS -->
     <style>
         :root {
-            --primary-color: #0EA5E9;
-            --primary-light: #38BDF8;
-            --primary-dark: #0284C7;
-            --secondary-color: #10B981;
-            --secondary-light: #34D399;
-            --secondary-dark: #059669;
-            --accent-color: #F59E0B;
-            --success-color: #10B981;
-            --danger-color: #EF4444;
-            --warning-color: #F59E0B;
-            --info-color: #3B82F6;
-            --light-bg: #F8FAFC;
-            --white: #FFFFFF;
-            --text-dark: #1E293B;
-            --text-light: #64748B;
-            --border-color: #E2E8F0;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            --radius: 12px;
-            --radius-lg: 16px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --primary-color: #00838f;
+            --primary-light: #4fb3bf;
+            --primary-dark: #005662;
+            --secondary-color: #546e7a;
+            --text-on-primary: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --background: #f5f5f5;
+            --surface: #ffffff;
+            --error: #b71c1c;
+            --warning: #f57c00;
+            --success: #2e7d32;
+            --info: #0288d1;
         }
-
-        /* === ریست و استایل‌های پایه === */
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             font-family: 'Vazirmatn', sans-serif;
-            background-color: var(--light-bg);
-            color: var(--text-dark);
+            background-color: var(--background);
+            color: var(--text-primary);
             line-height: 1.6;
+            direction: rtl;
             overflow-x: hidden;
         }
-
-        /* === نوار ناوبری (Navbar) === */
-        .navbar-custom {
-            background-color: var(--white);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0.75rem 0;
-            transition: var(--transition);
-            box-shadow: var(--shadow-sm);
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
         }
-
-        .navbar-custom.scrolled {
-            box-shadow: var(--shadow-md);
+        
+        /* Navigation */
+        .navbar {
+            background-color: var(--primary-color);
+            color: var(--text-on-primary);
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
         }
-
-        .navbar-brand {
-            font-weight: 800;
-            font-size: 1.5rem;
-            color: var(--primary-color) !important;
+        
+        .navbar .container {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            transition: var(--transition);
         }
-
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: var(--text-on-primary);
+            transition: transform 0.3s ease;
+        }
+        
         .navbar-brand:hover {
-            color: var(--primary-dark) !important;
+            transform: scale(1.05);
         }
-
+        
         .navbar-nav {
             display: flex;
-            flex-direction: row;
+            list-style: none;
+            gap: 1rem;
         }
-
-        .navbar-nav .nav-link {
-            font-weight: 500;
-            color: var(--text-dark) !important;
-            margin: 0 0.5rem;
+        
+        .navbar-nav a {
+            color: var(--text-on-primary);
+            text-decoration: none;
             padding: 0.5rem 1rem;
-            border-radius: var(--radius);
-            transition: var(--transition);
+            border-radius: 4px;
+            transition: all 0.3s ease;
             position: relative;
-        }
-
-        .navbar-nav .nav-link:hover,
-        .navbar-nav .nav-link.active {
-            background-color: var(--primary-color);
-            color: var(--white) !important;
-        }
-
-        /* === منوی کشویی پروفایل === */
-        .dropdown .nav-link {
-            color: var(--text-dark) !important;
-        }
-        .dropdown-menu {
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-lg);
-            border-radius: var(--radius);
-            padding: 0.5rem;
-            background-color: var(--white);
-        }
-        .dropdown-item {
-            border-radius: 8px;
-            transition: var(--transition);
-            color: var(--text-dark);
-        }
-        .dropdown-item:hover {
-            background-color: var(--primary-color);
-            color: var(--white);
-        }
-
-        /* === محتوای اصلی === */
-        main {
-            padding: 2rem 0;
-            min-height: calc(100vh - 76px);
-        }
-
-        /* === کارت‌ها (Cards) === */
-        .card-custom {
-            background-color: var(--white);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
             overflow: hidden;
         }
-
-        .card-custom:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
-        }
-
-        /* === دکمه‌ها === */
-        .btn-custom {
-            padding: 0.625rem 1.25rem;
-            font-weight: 600;
-            border-radius: var(--radius);
-            transition: var(--transition);
-            border: none;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .btn-custom-primary {
-            background-color: var(--primary-color);
-            color: var(--white);
-        }
-        .btn-custom-primary:hover {
-            background-color: var(--primary-dark);
-            color: var(--white);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+        
+        .navbar-nav a::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 100%;
+            background-color: var(--primary-light);
+            transition: width 0.3s ease;
+            z-index: -1;
         }
         
-        .btn-custom-secondary {
-            background-color: var(--secondary-color);
-            color: var(--white);
+        .navbar-nav a:hover::before {
+            width: 100%;
         }
-        .btn-custom-secondary:hover {
-            background-color: var(--secondary-dark);
-            color: var(--white);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: var(--text-on-primary);
+            padding: 6rem 0;
+            position: relative;
+            overflow: hidden;
         }
-
-        /* === فرم‌ها === */
-        .form-control-custom {
-            background-color: var(--white);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            padding: 0.625rem 1rem;
-            transition: var(--transition);
-            color: var(--text-dark);
+        
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background-image: url('https://sfile.chatglm.cn/images-ppt/d75e620f4fb7.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.1;
+            z-index: 0;
         }
-        .form-control-custom:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
-            outline: none;
-        }
-
-        /* === پیام‌های فلش (Flash Messages) === */
-        .alert-custom {
-            border: none;
-            border-radius: var(--radius);
-            padding: 1rem 1.25rem;
-            margin-bottom: 1.5rem;
-            box-shadow: var(--shadow-sm);
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-        }
-        .alert-custom-success {
-            background-color: rgba(16, 185, 129, 0.1);
-            color: var(--secondary-dark);
-            border-right: 4px solid var(--secondary-color);
-        }
-        .alert-custom-error {
-            background-color: rgba(239, 68, 68, 0.1);
-            color: var(--danger-color);
-            border-right: 4px solid var(--danger-color);
-        }
-        .alert-custom-info {
-            background-color: rgba(14, 165, 233, 0.1);
-            color: var(--primary-dark);
-            border-right: 4px solid var(--primary-color);
-        }
-
-        /* === انیمیشن‌ها === */
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .slide-in-right {
-            animation: slideInRight 0.5s ease-out;
-        }
-        @keyframes slideInRight {
-            from { transform: translateX(20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+            min-height: 400px;
         }
         
-        /* === استایل‌های اختصاصی صفحه اصلی === */
-        .hero-section {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            color: var(--white);
-            padding: 6rem 0;
-            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-            margin-bottom: 4rem;
+        .hero-text {
+            flex: 1;
+            padding-left: 2rem;
+            opacity: 0;
+            transform: translateX(50px);
+            animation: fadeInRight 1s ease forwards;
         }
         
-        .hero-section h1 {
+        .hero-title {
             font-size: 3rem;
-            font-weight: 800;
+            font-weight: 700;
             margin-bottom: 1.5rem;
+            line-height: 1.2;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease 0.3s forwards;
         }
         
-        .hero-section p {
+        .hero-subtitle {
             font-size: 1.25rem;
             margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease 0.5s forwards;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease 0.7s forwards;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .btn::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+            z-index: -1;
+        }
+        
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn-primary {
+            background-color: var(--text-on-primary);
+            color: var(--primary-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            color: var(--text-on-primary);
+            border: 2px solid var(--text-on-primary);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--text-on-primary);
+            color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transform: translateX(-50px);
+            animation: fadeInLeft 1s ease forwards;
+        }
+        
+        .hero-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.5s ease;
+        }
+        
+        .hero-image:hover img {
+            transform: scale(1.03);
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 5rem 0;
+            background-color: var(--surface);
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
             max-width: 700px;
             margin-left: auto;
             margin-right: auto;
+            opacity: 0;
+            transform: translateY(20px);
         }
         
-        .btn-hero {
-            padding: 0.875rem 2rem;
-            font-size: 1.125rem;
-            font-weight: 700;
-            border-radius: 50px;
-            transition: var(--transition);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .btn-hero:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
         }
         
         .feature-card {
+            background-color: var(--background);
+            border-radius: 10px;
+            padding: 2rem;
             text-align: center;
-            padding: 2rem 1.5rem;
-            height: 100%;
-            transition: var(--transition);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        
+        .feature-card.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
         
         .feature-card:hover {
             transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
         }
         
         .feature-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 2rem;
-        }
-        
-        .feature-icon.primary {
-            background-color: rgba(14, 165, 233, 0.1);
+            font-size: 3rem;
             color: var(--primary-color);
-        }
-        
-        .feature-icon.secondary {
-            background-color: rgba(16, 185, 129, 0.1);
-            color: var(--secondary-color);
-        }
-        
-        .feature-icon.accent {
-            background-color: rgba(245, 158, 11, 0.1);
-            color: var(--accent-color);
-        }
-        
-        .stats-section {
-            background-color: var(--white);
-            padding: 4rem 0;
-            border-radius: var(--radius-lg);
-            margin-bottom: 4rem;
-        }
-        
-        .stat-item {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-label {
-            font-size: 1.125rem;
-            color: var(--text-light);
-        }
-        
-        .testimonial-card {
-            padding: 2rem;
-            text-align: center;
-            height: 100%;
-        }
-        
-        .testimonial-text {
-            font-style: italic;
             margin-bottom: 1.5rem;
-            font-size: 1.125rem;
+            transition: all 0.3s ease;
         }
         
-        .testimonial-author {
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+            color: var(--primary-dark);
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            transition: color 0.3s ease;
+        }
+        
+        .feature-card:hover .feature-title {
+            color: var(--primary-dark);
+        }
+        
+        .feature-description {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        /* CTA Section */
+        .cta {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: var(--text-on-primary);
+            padding: 5rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            animation: pulse 4s infinite;
+        }
+        
+        .cta-title {
+            font-size: 2.5rem;
             font-weight: 700;
-            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
         }
         
-        .testimonial-role {
-            color: var(--text-light);
-            font-size: 0.875rem;
+        .cta-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
         }
         
-        /* === بهبود ویژگی‌های واکنش‌گرا === */
-        @media (max-width: 992px) {
-            .navbar-nav {
+        .cta .btn {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        /* Footer */
+        .footer {
+            background-color: var(--secondary-color);
+            color: var(--text-on-primary);
+            padding: 2rem 0;
+        }
+        
+        .footer .container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-title {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links a {
+            color: var(--text-on-primary);
+            text-decoration: none;
+            display: block;
+            padding: 0.25rem 0;
+            transition: all 0.3s ease;
+            position: relative;
+            padding-right: 0;
+        }
+        
+        .footer-links a::before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-light);
+            transform: translateY(0);
+            transition: width 0.3s ease;
+        }
+        
+        .footer-links a:hover::before {
+            width: 100%;
+        }
+        
+        .footer-links a:hover {
+            padding-right: 10px;
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content {
                 flex-direction: column;
-                width: 100%;
+                text-align: center;
             }
             
-            .navbar-nav .nav-link {
-                margin: 0.25rem 0;
+            .hero-text {
+                padding-left: 0;
+                margin-bottom: 2rem;
             }
             
-            .hero-section h1 {
+            .hero-title {
                 font-size: 2.5rem;
             }
             
-            .hero-section p {
-                font-size: 1.125rem;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .hero-section {
-                padding: 4rem 0;
+            .hero-buttons {
+                justify-content: center;
             }
             
-            .hero-section h1 {
-                font-size: 2rem;
+            .navbar .container {
+                flex-direction: column;
+                gap: 1rem;
             }
             
-            .stat-number {
-                font-size: 2rem;
+            .navbar-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .footer .container {
+                flex-direction: column;
             }
         }
     </style>
-
-    {% block head %}{% endblock %}
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+    <!-- Navigation -->
+    <nav class="navbar">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="bi bi-mortarboard-fill ms-2"></i>
-                همکلاسی یاب
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
-                            <i class="bi bi-house-fill ms-1"></i>
-                            خانه
-                        </a>
-                    </li>
-                    {% if not current_user %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint in ['show_auth_page', 'register', 'login'] %}active{% endif %}" href="{{ url_for('show_auth_page') }}">
-                            <i class="bi bi-person-plus-fill ms-1"></i>
-                            ثبت اطلاعات / ورود
-                        </a>
-                    </li>
-                    {% endif %}
-                    {% if current_user %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'match' %}active{% endif %}" href="{{ url_for('match') }}">
-                            <i class="bi bi-search ms-1"></i>
-                            جست‌وجو
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'inbox' %}active{% endif %}" href="{{ url_for('inbox', user_id=current_user.id) }}">
-                            <i class="bi bi-chat-dots ms-1"></i>
-                            گفتگوها
-                        </a>
-                    </li>
-                    {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}">
-                            <i class="bi bi-info-circle-fill ms-1"></i>
-                            درباره برنامه
-                        </a>
-                    </li>
-                </ul>
-
-                {% if current_user %}
-                <div class="dropdown">
-                    <a class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="https://ui-avatars.com/api/?name={{ current_user.name|urlencode }}&background=0EA5E9&color=fff&size=32" alt="{{ current_user.name }}" title="{{ current_user.name }}" class="rounded-circle me-2" width="32" height="32">
-                        {{ current_user.name }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown" style="left: auto; right: 0;">
-                        <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="bi bi-person ms-2"></i> پروفایل من</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-left ms-2"></i> خروج</a></li>
-                    </ul>
-                </div>
-                {% endif %}
-            </div>
+            <a href="{{ url_for('index') }}" class="navbar-brand">اپلیکیشن چت</a>
+            
+            <ul class="navbar-nav">
+                <li><a href="{{ url_for('index') }}">صفحه اصلی</a></li>
+                <li><a href="{{ url_for('about') }}">درباره ما</a></li>
+                <li><a href="{{ url_for('show_auth_page') }}">ورود / ثبت‌نام</a></li>
+            </ul>
         </div>
     </nav>
-
-    <!-- Main Content -->
-    <main>
-        <!-- Hero Section -->
-        <section class="hero-section text-center text-white">
-            <div class="container">
-                <h1 class="display-4 fw-bold fade-in">به همکلاسی یاب خوش آمدید!</h1>
-                <p class="lead my-4 fade-in">پلتفرمی برای پیدا کردن و ارتباط با همکلاسی‌های خود در دانشگاه.</p>
-                {% if not session.get('current_user_id') %}
-                    <a href="{{ url_for('show_auth_page') }}" class="btn btn-light btn-lg btn-hero fade-in">
-                        <i class="bi bi-rocket-takeoff ms-2"></i>شروع کن
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('match') }}" class="btn btn-light btn-lg btn-hero fade-in">
-                        <i class="bi bi-search ms-2"></i>جستجوی همکلاسی
-                    </a>
-                {% endif %}
-            </div>
-        </section>
-        
-        <!-- Features Section -->
-        <section class="features-section mb-5">
-            <div class="container">
-                <div class="row g-4">
-                    <div class="col-md-4 fade-in">
-                        <div class="card-custom feature-card">
-                            <div class="feature-icon primary">
-                                <i class="bi bi-search"></i>
-                            </div>
-                            <h3>جستجوی آسان</h3>
-                            <p>با استفاده از فیلترهای پیشرفته، به راحتی همکلاسی‌های خود را بر اساس رشته، ترم یا علایق مشترک پیدا کنید.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4 fade-in">
-                        <div class="card-custom feature-card">
-                            <div class="feature-icon secondary">
-                                <i class="bi bi-chat-dots"></i>
-                            </div>
-                            <h3>ارتباط مستقیم</h3>
-                            <p>با همکلاسی‌های خود به صورت مستقیم چت کنید و برای پروژه‌های درسی یا فعالیت‌های گروهی هماهنگ شوید.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4 fade-in">
-                        <div class="card-custom feature-card">
-                            <div class="feature-icon accent">
-                                <i class="bi bi-shield-check"></i>
-                            </div>
-                            <h3>امنیت بالا</h3>
-                            <p>اطلاعات شما به صورت امن ذخیره می‌شود و فقط برای کاربران تأیید شده نمایش داده می‌شود.</p>
-                        </div>
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1 class="hero-title">با همکلاسی‌های خود ارتباط برقرار کنید</h1>
+                    <p class="hero-subtitle">پلتفرم چت تخصصی برای دانشجویان و دانش‌آموزان جهت ارتباط، همکاری و به اشتراک گذاشتن دانش</p>
+                    <div class="hero-buttons">
+                        <a href="{{ url_for('show_auth_page') }}" class="btn btn-primary">شروع کنید</a>
+                        <a href="{{ url_for('about') }}" class="btn btn-outline">بیشتر بدانید</a>
                     </div>
                 </div>
-            </div>
-        </section>
-        
-        <!-- Stats Section -->
-        <section class="stats-section">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-3 col-6 fade-in">
-                        <div class="stat-item">
-                            <div class="stat-number">2500+</div>
-                            <div class="stat-label">کاربر فعال</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6 fade-in">
-                        <div class="stat-item">
-                            <div class="stat-number">50+</div>
-                            <div class="stat-label">دانشگاه</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6 fade-in">
-                        <div class="stat-item">
-                            <div class="stat-number">100+</div>
-                            <div class="stat-label">رشته تحصیلی</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6 fade-in">
-                        <div class="stat-item">
-                            <div class="stat-number">5000+</div>
-                            <div class="stat-label">ارتباط برقرار شده</div>
-                        </div>
-                    </div>
+                <div class="hero-image">
+                    <img src="https://sfile.chatglm.cn/images-ppt/c8eeb1a1ee7c.jpg" alt="اپلیکیشن چت آموزشی">
                 </div>
             </div>
-        </section>
-        
-        <!-- Testimonials Section -->
-        <section class="testimonials-section mb-5">
-            <div class="container">
-                <h2 class="text-center mb-5">نظرات کاربران</h2>
-                <div class="row g-4">
-                    <div class="col-md-4 fade-in">
-                        <div class="card-custom testimonial-card">
-                            <div class="testimonial-text">
-                                "با استفاده از همکلاسی یاب توانستم به راحتی همکلاسی‌هایم را پیدا کنم و برای پروژه‌های درسی گروه تشکیل دهم."
-                            </div>
-                            <div class="testimonial-author">سارا رضایی</div>
-                            <div class="testimonial-role">دانشجوی کامپیوتر</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 fade-in">
-                        <div class="card-custom testimonial-card">
-                            <div class="testimonial-text">
-                                "این پلتفرم به من کمک کرد تا با دانشجویان دیگر رشته خودم آشنا شوم و از تجربیاتشان استفاده کنم."
-                            </div>
-                            <div class="testimonial-author">علی محمدی</div>
-                            <div class="testimonial-role">دانشجوی مهندسی</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 fade-in">
-                        <div class="card-custom testimonial-card">
-                            <div class="testimonial-text">
-                                "رابط کاربری بسیار ساده و کاربرپسندی دارد و به راحتی می‌توانم با همکلاسی‌هایم در ارتباط باشم."
-                            </div>
-                            <div class="testimonial-author">مریم احمدی</div>
-                            <div class="testimonial-role">دانشجوی علوم انسانی</div>
-                        </div>
-                    </div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">ویژگی‌های ما</h2>
+            <p class="section-subtitle">با ابزارهای ما، ارتباط با همکلاسی‌ها و همکاران خود را آسان‌تر کنید</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="material-icons feature-icon">search</i>
+                    <h3 class="feature-title">جستجوی همکلاسی‌ها</h3>
+                    <p class="feature-description">بر اساس رشته و مقطع تحصیلی، همکلاسی‌ها و همکاران خود را پیدا کنید</p>
+                </div>
+                
+                <div class="feature-card">
+                    <i class="material-icons feature-icon">chat</i>
+                    <h3 class="feature-title">چت آنی</h3>
+                    <p class="feature-description">ارتباط فوری و بدون تأخیر با دوستان و همکاران خود</p>
+                </div>
+                
+                <div class="feature-card">
+                    <i class="material-icons feature-icon">school</i>
+                    <h3 class="feature-title">محیط آموزشی</h3>
+                    <p class="feature-description">فضایی امن برای بحث در مورد مسائل درسی و علمی</p>
+                </div>
+                
+                <div class="feature-card">
+                    <i class="material-icons feature-icon">people</i>
+                    <h3 class="feature-title">شبکه اجتماعی</h3>
+                    <p class="feature-description">ایجاد ارتباطات حرفه‌ی و اجتماعی با افراد هم‌رشته</p>
+                </div>
+                
+                <div class="feature-card">
+                    <i class="material-icons feature-icon">notifications</i>
+                    <h3 class="feature-title">اعلان‌های هوشمند</h3>
+                    <p class="feature-description">اطلاع‌رسانی فوری از پیام‌ها و فعالیت‌های مهم</p>
+                </div>
+                
+                <div class="feature-card">
+                    <i class="material-icons feature-icon">security</i>
+                    <h3 class="feature-title">امنیت بالا</h3>
+                    <p class="feature-description">محافظت از اطلاعات شخصی و حفظ حریم خصوصی کاربران</p>
                 </div>
             </div>
-        </section>
-        
-        <!-- CTA Section -->
-        <section class="cta-section text-center mb-5">
-            <div class="container">
-                <div class="card-custom p-5">
-                    <h2 class="mb-4">آماده شروع هستید؟</h2>
-                    <p class="mb-4">به هزاران دانشجو بپیوندید و همکلاسی‌های خود را پیدا کنید.</p>
-                    {% if not session.get('current_user_id') %}
-                        <a href="{{ url_for('show_auth_page') }}" class="btn btn-custom-primary btn-lg">
-                            <i class="bi bi-person-plus ms-2"></i>ثبت‌نام کنید
-                        </a>
-                    {% else %}
-                        <a href="{{ url_for('match') }}" class="btn btn-custom-primary btn-lg">
-                            <i class="bi bi-search ms-2"></i>جستجوی همکلاسی
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        </section>
-    </main>
-
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2 class="cta-title">آماده‌اید شروع کنید؟</h2>
+            <p class="cta-subtitle">همین امروز به جامعه ما بپیوندید و با همکلاسی‌های خود ارتباط برقرار کنید</p>
+            <a href="{{ url_for('show_auth_page') }}" class="btn btn-primary">ثبت‌نام رایگان</a>
+        </div>
+    </section>
+    
     <!-- Footer -->
-    <footer class="text-center py-3 mt-5 border-top">
-        <p class="text-muted">© 2024 همکلاسی یاب. ساخته شده با ❤️.</p>
-    </footer>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // تغییر استایل نوار ناوبری هنگام اسکرول
-        window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('.navbar-custom');
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-section">
+                <h3 class="footer-title">درباره ما</h3>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('about') }}">معرفی اپلیکیشن</a></li>
+                    <li><a href="#">قوانین و مقررات</a></li>
+                    <li><a href="#">حریم خصوصی</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="footer-title">پشتیبانی</h3>
+                <ul class="footer-links">
+                    <li><a href="#">راهنمای استفاده</a></li>
+                    <li><a href="#">سوالات متداول</a></li>
+                    <li><a href="#">تماس با ما</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="footer-title">شبکه‌های اجتماعی</h3>
+                <ul class="footer-links">
+                    <li><a href="#">تلگرام</a></li>
+                    <li><a href="#">اینستاگرام</a></li>
+                    <li><a href="#">توییتر</a></li>
+                </ul>
+            </div>
+        </div>
         
-        // انیمیشن‌های ورود عناصر هنگام اسکرول
+        <div class="copyright">
+            <p>© 2023 اپلیکیشن چت. تمام حقوق محفوظ است.</p>
+        </div>
+    </footer>
+    
+    <!-- JavaScript for animations -->
+    <script>
+        // Scroll animations
         const observerOptions = {
             root: null,
             rootMargin: '0px',
@@ -625,19 +667,32 @@
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.style.opacity = 1;
-                    entry.target.style.transform = 'translateY(0)';
+                    entry.target.classList.add('visible');
                 }
             });
         }, observerOptions);
         
-        document.querySelectorAll('.fade-in').forEach(el => {
-            el.style.opacity = 0;
-            el.style.transform = 'translateY(20px)';
-            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            observer.observe(el);
+        // Observe all elements with animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const animatedElements = document.querySelectorAll('.feature-card, .section-title, .section-subtitle');
+            
+            animatedElements.forEach(el => {
+                observer.observe(el);
+            });
+            
+            // Add delay for feature cards
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach((card, index) => {
+                card.style.transitionDelay = `${index * 0.1}s`;
+            });
+            
+            // Animate CTA section elements
+            const ctaElements = document.querySelectorAll('.cta-title, .cta-subtitle, .cta .btn');
+            ctaElements.forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.2}s`;
+                el.style.animation = 'fadeInUp 0.8s ease forwards';
+            });
         });
     </script>
-    {% block scripts %}{% endblock %}
 </body>
 </html>
