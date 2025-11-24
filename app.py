@@ -10,6 +10,24 @@ from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from datetime import datetime # برای فرمت timestamp در Socket.IO
 
+
+
+from flask_migrate import upgrade
+from sqlalchemy import text
+
+def add_created_at_column():
+    """Add created_at column to user table"""
+    # Add created_at column to user table if it doesn't exist
+    from app import db
+    try:
+        # Check if column exists
+        db.engine.execute(text("SELECT created_at FROM user LIMIT 1"))
+    except:
+        # Column doesn't exist, add it
+        db.engine.execute(text("ALTER TABLE user ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP"))
+        db.session.commit()
+
+
 # --- تنظیمات اولیه برنامه ---
 app = Flask(__name__)
 # از یک کلید مخفی امن در محیط پروداکشن استفاده کنید
