@@ -157,7 +157,8 @@ def register():
         )
         db.session.add(new_user)
         db.session.commit()
-        session['user_id'] = new_user.id
+        # اصلاح: استفاده از current_user_id به جای user_id
+        session['current_user_id'] = new_user.id
 
         flash('ثبت‌نام موفقیت‌آمیز بود. وارد شدید!', 'success')
         return redirect(url_for('match'))
@@ -187,11 +188,14 @@ def logout():
 @app.route('/match')
 @login_required
 def match():
-    current_user_id = session.get('user_id')
+    # اصلاح: استفاده از current_user_id به جای user_id
+    current_user_id = session.get('current_user_id')
     if not current_user_id:
         return redirect('/auth')
     current_user = User.query.get(current_user_id)
     query = User.query.filter(User.id != current_user_id)
+    # متغیر q تعریف نشده است، باید آن را از درخواست بگیریم
+    q = request.args.get('q', '')
     if q:
         users = query.filter((User.major.contains(q)) | (User.name.contains(q))).all()
     else:
