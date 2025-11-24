@@ -12,6 +12,7 @@ from datetime import datetime
 from flask_migrate import upgrade
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+from functools import wraps # <-- اضافه شده
 
 def ensure_created_at_column():
     """Ensure 'created_at' column exists on user table. Safe to run on startup.
@@ -21,7 +22,8 @@ def ensure_created_at_column():
             ALTER TABLE IF EXISTS "user"
             ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT now();
         """)
-        db.engine.execute(sql)
+        with db.engine.connect() as conn:
+            conn.execute(sql)
         db.session.commit()
     except SQLAlchemyError as e:
         print("ensure_created_at_column: failed:", str(e))
@@ -50,7 +52,6 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 online_users = {}
 
 def login_required(f):
-    from functools import wraps
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'current_user_id' not in session:
@@ -157,7 +158,6 @@ def register():
         )
         db.session.add(new_user)
         db.session.commit()
-        # اصلاح: استفاده از current_user_id به جای user_id
         session['current_user_id'] = new_user.id
 
         flash('ثبت‌نام موفقیت‌آمیز بود. وارد شدید!', 'success')
@@ -180,6 +180,7 @@ def login():
     return render_template('register.html', form=form, login_form=login_form)
 
 @app.route('/logout')
+@login_required  # <-- این خط اضافه شد
 def logout():
     session.pop('current_user_id', None)
     flash('شما با موفقیت از حساب کاربری خود خارج شدید.', 'info')
@@ -188,13 +189,11 @@ def logout():
 @app.route('/match')
 @login_required
 def match():
-    # اصلاح: استفاده از current_user_id به جای user_id
     current_user_id = session.get('current_user_id')
     if not current_user_id:
         return redirect('/auth')
     current_user = User.query.get(current_user_id)
     query = User.query.filter(User.id != current_user_id)
-    # متغیر q تعریف نشده است، باید آن را از درخواست بگیریم
     q = request.args.get('q', '')
     if q:
         users = query.filter((User.major.contains(q)) | (User.name.contains(q))).all()
@@ -204,7 +203,7 @@ def match():
     'match.html',
     users=users,
     current_user_id=current_user_id,
-    current_user=current_user  # اضافه شده
+    current_user=current_user
 )
 
 
