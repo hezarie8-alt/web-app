@@ -15,17 +15,26 @@ from datetime import datetime # برای فرمت timestamp در Socket.IO
 from flask_migrate import upgrade
 from sqlalchemy import text
 
-def add_created_at_column():
-    """Add created_at column to user table"""
-    # Add created_at column to user table if it doesn't exist
-    from app import db
+# --- جایگزین تابع add_created_at_column با نسخه ایمن برای PostgreSQL ---
+from sqlalchemy.exc import SQLAlchemyError
+
+def ensure_created_at_column():
+    """Ensure 'created_at' column exists on user table. Safe to run on startup.
+       Works with PostgreSQL (used on Render)."""
     try:
-        # Check if column exists
-        db.engine.execute(text("SELECT created_at FROM user LIMIT 1"))
-    except:
-        # Column doesn't exist, add it
-        db.engine.execute(text("ALTER TABLE user ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP"))
+        sql = text("""
+            ALTER TABLE IF EXISTS "user"
+            ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT now();
+        """)
+        db.engine.execute(sql)
         db.session.commit()
+    except SQLAlchemyError as e:
+        print("ensure_created_at_column: failed:", str(e))
+        try:
+            db.session.rollback()
+        except:
+            pass
+
 
 
 # --- تنظیمات اولیه برنامه ---
@@ -389,9 +398,10 @@ def handle_stop_typing(data):
     if room:
         emit('stop_typing', {'user_id': current_user_id}, room=room, include_self=False)
 
-
 if __name__ == '__main__':
     with app.app_context():
+        ensure_created_at_column()
         db.create_all()
+
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, host='0.0.0.0', port=port)
