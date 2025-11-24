@@ -178,7 +178,9 @@ def logout():
 @app.route('/match')
 @login_required
 def match():
-    current_user_id = session['user_id']
+    current_user_id = session.get('user_id')
+    if not current_user_id:
+        return redirect('/auth')
     current_user = User.query.get(current_user_id)
     query = User.query.filter(User.id != current_user_id)
     if q:
