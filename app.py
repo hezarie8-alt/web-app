@@ -8,14 +8,9 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, BooleanField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from datetime import datetime # برای فرمت timestamp در Socket.IO
-
-
-
+from datetime import datetime
 from flask_migrate import upgrade
 from sqlalchemy import text
-
-# --- جایگزین تابع add_created_at_column با نسخه ایمن برای PostgreSQL ---
 from sqlalchemy.exc import SQLAlchemyError
 
 def ensure_created_at_column():
@@ -36,16 +31,11 @@ def ensure_created_at_column():
             pass
 
 
-
-# --- تنظیمات اولیه برنامه ---
 app = Flask(__name__)
-# از یک کلید مخفی امن در محیط پروداکشن استفاده کنید
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_default_secret_key_for_development')
 
-# تنظیمات دیتابیس
 database_url = os.getenv("DATABASE_URL")
 if not database_url:
-    # اگر DATABASE_URL تنظیم نشده باشد، از دیتابیس محلی SQLite استفاده می‌کند
     basedir = os.path.abspath(os.path.dirname(__file__))
     database_url = 'sqlite:///' + os.path.join(basedir, 'app.db')
     print(f"WARNING: DATABASE_URL not set. Using local SQLite database: {database_url}")
@@ -53,15 +43,12 @@ if not database_url:
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# مقداردهی اولیه اکستنشن‌ها
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# دیکشنری برای نگهداری وضعیت آنلاین کاربران
 online_users = {}
 
-# --- دکوراتور و توابع کمکی ---
 def login_required(f):
     from functools import wraps
     @wraps(f)
@@ -72,11 +59,9 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# تابع کمکی برای بررسی وضعیت آنلاین کاربر
 def is_user_online(user_id):
     return user_id in online_users
 
-# --- Context Processor برای دسترسی به کاربر فعلی در تمام قالب‌ها ---
 @app.context_processor
 def inject_user():
     """این تابع متغیر 'current_user' را در تمام قالب‌های جینجا در دسترس قرار می‌دهد."""
@@ -85,7 +70,6 @@ def inject_user():
         return dict(current_user=current_user)
     return dict(current_user=None)
 
-# --- مدل‌های دیتابیس ---
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
@@ -100,7 +84,6 @@ class Message(db.Model):
     timestamp = db.Column(db.DateTime, server_default=db.func.now())
     read_at = db.Column(db.DateTime, nullable=True)
 
-# --- فرم‌های WTForms ---
 MAJOR_CHOICES = [('', '     رشته خود را انتخاب کنید'), ('     مهندسی کامپیوتر', '     مهندسی کامپیوتر'), ('     علوم کامپیوتر', '     علوم کامپیوتر')]
 
 class RegistrationForm(FlaskForm):
@@ -144,7 +127,6 @@ class UpdatePasswordForm(FlaskForm):
 class DeleteAccountForm(FlaskForm):
     submit = SubmitField('حذف حساب کاربری')
 
-# --- مسیرهای (Routes) برنامه ---
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -210,13 +192,20 @@ def match():
 def profile(user_id):
     current_user_id = session.get('current_user_id')
     if current_user_id != user_id:
-        abort(403)  # هدایت به پروفایل خودشان یا نمایش خطا
+        abort(403)
     
     user = User.query.get_or_404(user_id)
     update_profile_form = UpdateProfileForm(obj=user, original_username=user.name)
     update_password_form = UpdatePasswordForm()
     delete_account_form = DeleteAccountForm()
-    return render_template('profile.html', user=user, update_profile_form=update_profile_form, update_password_form=update_password_form, delete_account_form=delete_account_form)
+    return render_template('profile.html', 
+    user=user,
+    user_id=user.id,
+    update_profile_form=update_profile_form,
+    update_password_form=update_password_form,
+    delete_account_form=delete_account_form
+)
+
 
 @app.route('/update_profile/<int:user_id>', methods=['POST'])
 @login_required
@@ -271,17 +260,13 @@ def chat(other_user_id):
         return redirect(url_for('inbox', user_id=current_user_id))
 
     other_user = User.query.get_or_404(other_user_id)
-    
-    # علامت‌گذاری پیام‌های خوانده نشده به عنوان خوانده شده
+
     unread_messages = Message.query.filter(and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id, Message.read_at.is_(None))).all()
     for msg in unread_messages:
         msg.read_at = db.func.now()
     db.session.commit()
-
-    # دریافت پیام‌های گفتگو
     messages = Message.query.filter(or_(and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id), and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id))).order_by(Message.timestamp.asc()).all()
     
-    # ارسال فرم به قالب برای استفاده در ارسال پیام (fallback)
     message_form = MessageForm()
     
     return render_template('chat.html', other_user=other_user, messages=messages, message_form=message_form)
@@ -307,7 +292,6 @@ def inbox(user_id):
     if current_user_id != user_id:
         abort(403)
 
-    # پیدا کردن کاربرانی که با آن‌ها گفتگو داشته‌ایم
     sent_to_users = db.session.query(Message.receiver_id).filter(Message.sender_id == current_user_id).distinct()
     received_from_users = db.session.query(Message.sender_id).filter(Message.receiver_id == current_user_id).distinct()
     other_users_ids = sent_to_users.union(received_from_users).all()
@@ -330,7 +314,6 @@ def inbox(user_id):
     conversations.sort(key=lambda x: x['last_message_timestamp'], reverse=True)
     return render_template('inbox.html', conversations=conversations, user_id=user_id)
 
-# --- هندلرهای Socket.IO برای چت آنی ---
 @socketio.on('connect')
 def handle_connect():
     current_user_id = session.get('current_user_id')
@@ -378,7 +361,6 @@ def handle_send_message(data):
         'message_id': msg.id
     }, room=room_id)
 
-# هندلرهای جدید برای تایپ کردن
 @socketio.on('typing')
 def handle_typing(data):
     current_user_id = session.get('current_user_id')
