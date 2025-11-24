@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>درباره ما | اپلیکیشن چت</title>
-    
-    <!-- Fonts -->
+    <title>درباره ما | اپلیکیشن چت</title>  
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
@@ -201,12 +199,24 @@
             flex: 1;
             opacity: 0;
             transform: translateX(50px);
+            transition: all 0.8s ease;
+        }
+        
+        .mission-text.visible {
+            opacity: 1;
+            transform: translateX(0);
         }
         
         .mission-image {
             flex: 1;
             opacity: 0;
             transform: translateX(-50px);
+            transition: all 0.8s ease;
+        }
+        
+        .mission-image.visible {
+            opacity: 1;
+            transform: translateX(0);
         }
         
         .mission-image img {
@@ -752,7 +762,7 @@
             <div class="story-content">
                 <div class="story-timeline">
                     <div class="timeline-item">
-                        <div class="timeline-date">۱۳۹۹</div>
+                        <div class="timeline-date">مهر</div>
                         <div class="timeline-content">
                             <h3 class="timeline-title">شروع ایده</h3>
                             <p class="timeline-description">ایده اولیه برای ایجاد پلتفرمی تخصصی جهت ارتباط دانشجویان با هدف به اشتراک گذاشتن دانش و تجربیات شکل گرفت.</p>
@@ -760,7 +770,7 @@
                     </div>
                     
                     <div class="timeline-item">
-                        <div class="timeline-date">۱۴۰۰</div>
+                        <div class="timeline-date">آبان</div>
                         <div class="timeline-content">
                             <h3 class="timeline-title">توسعه اولیه</h3>
                             <p class="timeline-description">تیم ما شروع به طراحی و توسعه نسخه اولیه اپلیکیشن با تمرکز بر نیازهای واقعی دانشجویان کرد.</p>
@@ -768,7 +778,7 @@
                     </div>
                     
                     <div class="timeline-item">
-                        <div class="timeline-date">۱۴۰۱</div>
+                        <div class="timeline-date">آذر</div>
                         <div class="timeline-content">
                             <h3 class="timeline-title">راه‌اندازی نسخه بتا</h3>
                             <p class="timeline-description">نسخه اولیه اپلیکیشن برای گروه کوچکی از دانشجویان منتشر شد و بازخوردهای ارزشمندی دریافت کردیم.</p>
@@ -776,7 +786,7 @@
                     </div>
                     
                     <div class="timeline-item">
-                        <div class="timeline-date">۱۴۰۲</div>
+                        <div class="timeline-date">دی</div>
                         <div class="timeline-content">
                             <h3 class="timeline-title">رشد و توسعه</h3>
                             <p class="timeline-description">با بازخوردهای کاربران، اپلیکیشن را بهبود دادیم و ویژگی‌های جدیدی مانند جستجوی پیشرفته و گروه‌های تخصصی اضافه کردیم.</p>
@@ -795,25 +805,10 @@
             
             <div class="team-grid">
                 <div class="team-member">
-                    <div class="member-avatar">ع</div>
-                    <h3 class="member-name">علی رضایی</h3>
-                    <p class="member-role">مدیر پروژه</p>
-                    <p class="member-bio">با بیش از ۱۰ سال تجربه در حوزه توسعه نرم‌افزار و مدیریت پروژه‌های آموزشی</p>
-                    <div class="member-social">
-                        <a href="#" class="social-link">
-                            <i class="material-icons">email</i>
-                        </a>
-                        <a href="#" class="social-link">
-                            <i class="material-icons">person</i>
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="team-member">
-                    <div class="member-avatar">س</div>
-                    <h3 class="member-name">سارا محمدی</h3>
-                    <p class="member-role">توسعه‌دهنده ارشد</p>
-                    <p class="member-bio">متخصص در طراحی رابط کاربری و تجربه کاربری با تمرکز بر سادگی و کارایی</p>
+                    <div class="member-avatar">ا</div>
+                    <h3 class="member-name">احسان هزاری</h3>
+                    <p class="member-role">مهندسی کامپیوتر</p>
+                    <p class="member-bio">متخصص بک اند و توسعه</p>
                     <div class="member-social">
                         <a href="#" class="social-link">
                             <i class="material-icons">email</i>
@@ -826,9 +821,9 @@
                 
                 <div class="team-member">
                     <div class="member-avatar">م</div>
-                    <h3 class="member-name">مریم احمدی</h3>
-                    <p class="member-role">متخصص محتوا</p>
-                    <p class="member-bio">با تخصص در زمینه آموزش و تولید محتوای دیجیتال برای بهبود تجربه کاربران</p>
+                    <h3 class="member-name">مصطفی جنگی</h3>
+                    <p class="member-role">مهندسی کامپیوتر</p>
+                    <p class="member-bio">متخصص فرانت</p>
                     <div class="member-social">
                         <a href="#" class="social-link">
                             <i class="material-icons">email</i>
@@ -840,10 +835,25 @@
                 </div>
                 
                 <div class="team-member">
-                    <div class="member-avatar">ر</div>
-                    <h3 class="member-name">رضا قاسمی</h3>
-                    <p class="member-role">مهندس نرم‌افزار</p>
-                    <p class="member-bio">متخصص در توسعه بک‌اند و پیاده‌سازی سیستم‌های مقیاس‌پذیر برای پشتیبانی از کاربران</p>
+                    <div class="member-avatar">م</div>
+                    <h3 class="member-name">مسعود اخباری</h3>
+                    <p class="member-role">مهندسی کامپیوتر</p>
+                    <p class="member-bio">متخصص نگاه کردن</p>
+                    <div class="member-social">
+                        <a href="#" class="social-link">
+                            <i class="material-icons">email</i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="material-icons">person</i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="team-member">
+                    <div class="member-avatar">م</div>
+                    <h3 class="member-name">مهدی محمدی</h3>
+                    <p class="member-role">مهندس کامپیوتر</p>
+                    <p class="member-bio">متخصص بیکاری</p>
                     <div class="member-social">
                         <a href="#" class="social-link">
                             <i class="material-icons">email</i>
@@ -943,6 +953,19 @@
             const timelineItems = document.querySelectorAll('.timeline-item');
             timelineItems.forEach((item, index) => {
                 item.style.transitionDelay = `${index * 0.2}s`;
+            });
+            
+            // Animate section titles and subtitles
+            const sectionTitles = document.querySelectorAll('.section-title');
+            sectionTitles.forEach((title, index) => {
+                title.style.animation = 'fadeInUp 0.8s ease forwards';
+                title.style.animationDelay = `${0.3 + index * 0.2}s`;
+            });
+            
+            const sectionSubtitles = document.querySelectorAll('.section-subtitle');
+            sectionSubtitles.forEach((subtitle, index) => {
+                subtitle.style.animation = 'fadeInUp 0.8s ease forwards';
+                subtitle.style.animationDelay = `${0.5 + index * 0.2}s`;
             });
             
             // Animate CTA section elements
