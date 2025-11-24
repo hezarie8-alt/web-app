@@ -12,7 +12,7 @@ from datetime import datetime
 from flask_migrate import upgrade
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-from functools import wraps # <-- اضافه شده
+from functools import wraps
 
 def ensure_created_at_column():
     """Ensure 'created_at' column exists on user table. Safe to run on startup.
@@ -32,6 +32,23 @@ def ensure_created_at_column():
         except:
             pass
 
+def ensure_read_at_column():
+    """Ensure 'read_at' column exists on message table. Safe to run on startup.
+       Works with PostgreSQL (used on Render)."""
+    try:
+        sql = text("""
+            ALTER TABLE IF EXISTS "message"
+            ADD COLUMN IF NOT EXISTS read_at TIMESTAMP WITH TIME ZONE;
+        """)
+        with db.engine.connect() as conn:
+            conn.execute(sql)
+        db.session.commit()
+    except SQLAlchemyError as e:
+        print("ensure_read_at_column: failed:", str(e))
+        try:
+            db.session.rollback()
+        except:
+            pass
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_default_secret_key_for_development')
@@ -180,7 +197,7 @@ def login():
     return render_template('register.html', form=form, login_form=login_form)
 
 @app.route('/logout')
-@login_required  # <-- این خط اضافه شد
+@login_required
 def logout():
     session.pop('current_user_id', None)
     flash('شما با موفقیت از حساب کاربری خود خارج شدید.', 'info')
@@ -402,6 +419,7 @@ def handle_stop_typing(data):
 if __name__ == '__main__':
     with app.app_context():
         ensure_created_at_column()
+        ensure_read_at_column()  # <-- این خط اضافه شد
         db.create_all()
 
     port = int(os.environ.get('PORT', 5000))
