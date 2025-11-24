@@ -24,7 +24,13 @@ if not database_url:
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+# --- FIX 1: Add engine_options to handle DB disconnects (SSL errors) ---
+db = SQLAlchemy(app, engine_options={
+    "pool_pre_ping": True,  # Checks connection aliveness before use
+    "pool_recycle": 300,    # Refreshes connections every 5 minutes
+})
+# -----------------------------------------------------------------------
+
 migrate = Migrate(app, db)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -39,7 +45,7 @@ def ensure_created_at_column():
         """)
         with db.engine.connect() as conn:
             conn.execute(sql)
-            conn.commit() # Explicit commit is often required in SQLAlchemy 2.0+
+            conn.commit() 
         print("ensure_created_at_column: check passed.")
     except SQLAlchemyError as e:
         print("ensure_created_at_column: failed:", str(e))
@@ -53,7 +59,7 @@ def ensure_read_at_column():
         """)
         with db.engine.connect() as conn:
             conn.execute(sql)
-            conn.commit() # Explicit commit is often required in SQLAlchemy 2.0+
+            conn.commit()
         print("ensure_read_at_column: check passed.")
     except SQLAlchemyError as e:
         print("ensure_read_at_column: failed:", str(e))
@@ -72,7 +78,6 @@ def is_user_online(user_id):
 
 @app.context_processor
 def inject_user():
-    """این تابع متغیر 'current_user' را در تمام قالب‌های جینجا در دسترس قرار می‌دهد."""
     if 'current_user_id' in session and session['current_user_id']:
         current_user = User.query.get(session['current_user_id'])
         return dict(current_user=current_user)
@@ -83,7 +88,6 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     major = db.Column(db.String(100))
     password_hash = db.Column(db.String(128), nullable=False)
-    # created_at handled by ensure_created_at_column migration logic
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -156,23 +160,15 @@ def show_auth_page():
 def register():
     form = RegistrationForm()
     login_form = LoginForm()
-
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data, method='pbkdf2:sha256')
-        new_user = User(
-            name=form.name.data,
-            major=form.major.data,
-            password_hash=hashed_password
-        )
+        new_user = User(name=form.name.data, major=form.major.data, password_hash=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         session['current_user_id'] = new_user.id
-
         flash('ثبت‌نام موفقیت‌آمیز بود. وارد شدید!', 'success')
         return redirect(url_for('match'))
-
     return render_template('register.html', form=form, login_form=login_form)
-
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -207,38 +203,40 @@ def match():
         users = query.filter((User.major.contains(q)) | (User.name.contains(q))).all()
     else:
         users = query.all()
-    return render_template(
-        'match.html',
-        users=users,
-        current_user_id=current_user_id,
-        current_user=current_user
-    )
-
+    return render_template('match.html', users=users, current_user_id=current_user_id, current_user=current_user)
 
 @app.route('/profile/<int:user_id>')
 @login_required
 def profile(user_id):
     current_user_id = session.get('current_user_id')
-    if current_user_id != user_id:
-        abort(403)
+    
+    # --- FIX 2: Removed "abort(403)" ---
+    # We now allow viewing other profiles, but we pass a flag 'is_own_profile'
+    # so the template can hide/show the edit forms accordingly.
+    is_own_profile = (current_user_id == user_id)
     
     user = User.query.get_or_404(user_id)
+    
+    # Even if viewing another user, we initialize forms to prevent template errors,
+    # but the HTML should hide them if !is_own_profile
     update_profile_form = UpdateProfileForm(obj=user, original_username=user.name)
     update_password_form = UpdatePasswordForm()
     delete_account_form = DeleteAccountForm()
+    
     return render_template('profile.html', 
         user=user,
         user_id=user.id,
+        is_own_profile=is_own_profile, # Pass this flag to template
         update_profile_form=update_profile_form,
         update_password_form=update_password_form,
         delete_account_form=delete_account_form
     )
 
-
 @app.route('/update_profile/<int:user_id>', methods=['POST'])
 @login_required
 def update_profile(user_id):
     current_user_id = session.get('current_user_id')
+    # Keep this check here! Only the owner can UPDATE.
     if current_user_id != user_id:
         abort(403)
 
@@ -289,7 +287,6 @@ def chat(other_user_id):
 
     other_user = User.query.get_or_404(other_user_id)
 
-    # Mark messages as read
     unread_messages = Message.query.filter(and_(Message.sender_id == other_user_id, Message.receiver_id == current_user_id, Message.read_at.is_(None))).all()
     for msg in unread_messages:
         msg.read_at = db.func.now()
@@ -377,6 +374,7 @@ def handle_send_message(data):
     content = data.get('content')
     if not other_user_id or not content: return
 
+    # Ensure DB connection is alive before adding message (handled by pool_pre_ping)
     room_id = f"chat-{min(current_user_id, other_user_id)}-{max(current_user_id, other_user_id)}"
     msg = Message(sender_id=current_user_id, receiver_id=other_user_id, content=content)
     db.session.add(msg)
@@ -395,7 +393,6 @@ def handle_send_message(data):
 def handle_typing(data):
     current_user_id = session.get('current_user_id')
     if not current_user_id: return
-    
     room = data.get('room')
     if room:
         emit('typing', {'user_id': current_user_id}, room=room, include_self=False)
@@ -404,24 +401,17 @@ def handle_typing(data):
 def handle_stop_typing(data):
     current_user_id = session.get('current_user_id')
     if not current_user_id: return
-    
     room = data.get('room')
     if room:
         emit('stop_typing', {'user_id': current_user_id}, room=room, include_self=False)
 
-# --- CRITICAL CHANGE ---
-# Execute DB setup on import, so Gunicorn runs it.
-# This ensures 'read_at' exists even on production.
 try:
     with app.app_context():
-        # Ensure tables exist
         db.create_all()
-        # Apply custom migrations
         ensure_created_at_column()
         ensure_read_at_column()
 except Exception as e:
     print(f"Database setup failed on startup: {e}")
-# -----------------------
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
