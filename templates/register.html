@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ورود و ثبت‌نام | یونی نت</title>
+    <title>ورود و ثبت‌نام | اپلیکیشن چت</title>
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -25,9 +25,6 @@
             --warning: #f57c00;
             --success: #2e7d32;
             --info: #0288d1;
-            --border-radius: 12px;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
         }
         
         * {
@@ -42,6 +39,7 @@
             color: var(--text-primary);
             line-height: 1.6;
             direction: rtl;
+            overflow-x: hidden;
         }
         
         .container {
@@ -59,6 +57,7 @@
             position: sticky;
             top: 0;
             z-index: 1000;
+            transition: all 0.3s ease;
         }
         
         .navbar .container {
@@ -72,21 +71,233 @@
             font-weight: 700;
             text-decoration: none;
             color: var(--text-on-primary);
+            transition: transform 0.3s ease;
+        }
+        
+        .navbar-brand:hover {
+            transform: scale(1.05);
+        }
+        
+        .navbar-nav {
+            display: flex;
+            list-style: none;
+            gap: 1rem;
+        }
+        
+        .navbar-nav a {
+            color: var(--text-on-primary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .navbar-nav a::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 100%;
+            background-color: var(--primary-light);
+            transition: width 0.3s ease;
+            z-index: -1;
+        }
+        
+        .navbar-nav a:hover::before {
+            width: 100%;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+            min-height: calc(100vh - 80px);
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+        }
+        
+        /* Auth Container */
+        .auth-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .auth-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        /* Tabs */
+        .auth-tabs {
+            display: flex;
+            width: 100%;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        .auth-tab:hover {
+            color: var(--primary-color);
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            width: 100%;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Cards */
+        .card {
+            background-color: var(--surface);
+            border-radius: 10px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 131, 143, 0.1);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 131, 143, 0.1);
+        }
+        
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-check-input {
+            width: 1.2rem;
+            height: 1.2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: var(--text-on-primary);
+            border: none;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: var(--text-on-primary);
         }
         
         /* Flash Messages */
         .flash-messages {
-            margin-top: 1rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            width: 100%;
         }
         
         .flash-message {
             padding: 0.75rem 1rem;
             margin-bottom: 0.5rem;
-            border-radius: 8px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -116,207 +327,14 @@
             border-right: 4px solid var(--warning);
         }
         
-        /* Main Content */
-        .main-content {
-            min-height: calc(100vh - 140px);
-            padding: 2rem 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* Error Messages */
+        .error-message {
+            color: var(--error);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
         }
         
-        /* Auth Container */
-        .auth-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 600px; /* Increased from 500px to 600px */
-        }
-        
-        .auth-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .auth-header h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-        
-        .auth-header p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-        }
-        
-        /* Tabs */
-        .auth-tabs {
-            display: flex;
-            width: 100%;
-            margin-bottom: 1.5rem;
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-        }
-        
-        .auth-tab {
-            flex: 1;
-            padding: 1rem;
-            text-align: center;
-            cursor: pointer;
-            font-weight: 500;
-            color: var(--text-secondary);
-            background-color: #f9f9f9;
-            transition: all 0.3s ease;
-        }
-        
-        .auth-tab.active {
-            color: var(--text-on-primary);
-            background-color: var(--primary-color);
-        }
-        
-        /* Tab Content */
-        .tab-content {
-            display: none;
-            width: 100%;
-            animation: fadeIn 0.4s ease;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Cards */
-        .card {
-            background-color: var(--surface);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            padding: 2rem;
-            width: 100%;
-            transition: box-shadow 0.3s ease;
-        }
-        
-        .card:hover {
-            box-shadow: var(--shadow-hover);
-        }
-        
-        /* Forms */
-        .form-group {
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-        
-        .form-control-wrapper {
-            position: relative;
-        }
-        
-        .form-control-icon {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 0.75rem 0.75rem 0.75rem 2.5rem;
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius);
-            font-family: inherit;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 131, 143, 0.2);
-        }
-        
-        .form-select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius);
-            font-family: inherit;
-            font-size: 1rem;
-            background-color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .form-select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 131, 143, 0.2);
-        }
-        
-        .form-check {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-check-input {
-            width: 1.2rem;
-            height: 1.2rem;
-        }
-        
-        .btn {
-            display: inline-block;
-            width: 100%;
-            padding: 0.875rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-            color: var(--text-on-primary);
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 1rem;
-            font-weight: 500;
-            text-align: center;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 131, 143, 0.3);
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0, 131, 143, 0.4);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
-            box-shadow: none;
-        }
-        
-        .btn-outline:hover {
-            background-color: var(--primary-color);
-            color: var(--text-on-primary);
-        }
-        
+        /* Divider */
         .divider {
             text-align: center;
             margin: 1.5rem 0;
@@ -339,26 +357,6 @@
             color: var(--text-secondary);
         }
         
-        /* Error Messages */
-        .error-message {
-            color: var(--error);
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        /* Success Message */
-        .success-message {
-            color: var(--success);
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
         /* Responsive */
         @media (max-width: 768px) {
             .auth-container {
@@ -369,8 +367,14 @@
                 padding: 1.5rem;
             }
             
-            .auth-header h1 {
-                font-size: 1.8rem;
+            .navbar .container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .navbar-nav {
+                flex-wrap: wrap;
+                justify-content: center;
             }
         }
     </style>
@@ -379,47 +383,48 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
-            <a href="{{ url_for('index') }}" class="navbar-brand">
-                <i class="material-icons">chat</i>
-                یونی نت
-            </a>
+            <a href="{{ url_for('index') }}" class="navbar-brand">اپلیکیشن چت</a>
+            
+            <ul class="navbar-nav">
+                <li><a href="{{ url_for('index') }}">صفحه اصلی</a></li>
+                <li><a href="{{ url_for('about') }}">درباره ما</a></li>
+                <li><a href="{{ url_for('show_auth_page') }}">ورود / ثبت‌نام</a></li>
+            </ul>
         </div>
     </nav>
-    
-    <!-- Flash Messages -->
-    <div class="container">
-        <div class="flash-messages">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="flash-message {{ category }}">
-                            <i class="material-icons">
-                                {% if category == 'success' %}check_circle
-                                {% elif category == 'error' %}error
-                                {% elif category == 'warning' %}warning
-                                {% else %}info
-                                {% endif %}
-                            </i>
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-        </div>
-    </div>
     
     <!-- Main Content -->
     <main class="main-content">
         <div class="container">
             <div class="auth-container">
                 <div class="auth-header">
-                    <h1>به یونی نت خوش آمدید</h1>
-                    <p>با دوستان و همکلاسی‌های خود ارتباط برقرار کنید</p>
+                    <h1 class="auth-title">به اپلیکیشن چت خوش آمدید</h1>
+                    <p class="auth-subtitle">با دوستان و همکلاسی‌های خود ارتباط برقرار کنید</p>
+                </div>
+                
+                <!-- Flash Messages -->
+                <div class="flash-messages">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="flash-message {{ category }}">
+                                    <i class="material-icons">
+                                        {% if category == 'success' %}check_circle
+                                        {% elif category == 'error' %}error
+                                        {% elif category == 'warning' %}warning
+                                        {% else %}info
+                                        {% endif %}
+                                    </i>
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
                 </div>
                 
                 <div class="auth-tabs">
                     <div class="auth-tab active" onclick="switchTab('register')">ثبت‌نام</div>
-                    <div class="auth-tab" onclick="switchTab('login')">ورود</div>
+                    <div class="auth-tab" onclick="switchTab('login')">ورود</a></div>
                 </div>
                 
                 <!-- Registration Form -->
@@ -430,64 +435,40 @@
                             
                             <div class="form-group">
                                 {{ form.name.label(class="form-label") }}
-                                <div class="form-control-wrapper">
-                                    <i class="material-icons form-control-icon">person</i>
-                                    {{ form.name(class="form-control", placeholder="     نام و نام خانوادگی خود را وارد کنید") }}
-                                </div>
+                                {{ form.name(class="form-control") }}
                                 {% if form.name.errors %}
                                     {% for error in form.name.errors %}
-                                        <div class="error-message">
-                                            <i class="material-icons" style="font-size: 16px;">error_outline</i>
-                                            {{ error }}
-                                        </div>
+                                        <div class="error-message">{{ error }}</div>
                                     {% endfor %}
                                 {% endif %}
                             </div>
                             
                             <div class="form-group">
                                 {{ form.major.label(class="form-label") }}
-                                <div class="form-control-wrapper">
-                                    <i class="material-icons form-control-icon">school</i>
-                                    {{ form.major(class="form-select") }}
-                                </div>
+                                {{ form.major(class="form-select") }}
                                 {% if form.major.errors %}
                                     {% for error in form.major.errors %}
-                                        <div class="error-message">
-                                            <i class="material-icons" style="font-size: 16px;">error_outline</i>
-                                            {{ error }}
-                                        </div>
+                                        <div class="error-message">{{ error }}</div>
                                     {% endfor %}
                                 {% endif %}
                             </div>
                             
                             <div class="form-group">
                                 {{ form.password.label(class="form-label") }}
-                                <div class="form-control-wrapper">
-                                    <i class="material-icons form-control-icon">lock</i>
-                                    {{ form.password(class="form-control", placeholder="     رمز عبور خود را وارد کنید") }}
-                                </div>
+                                {{ form.password(class="form-control") }}
                                 {% if form.password.errors %}
                                     {% for error in form.password.errors %}
-                                        <div class="error-message">
-                                            <i class="material-icons" style="font-size: 16px;">error_outline</i>
-                                            {{ error }}
-                                        </div>
+                                        <div class="error-message">{{ error }}</div>
                                     {% endfor %}
                                 {% endif %}
                             </div>
                             
                             <div class="form-group">
                                 {{ form.confirm_password.label(class="form-label") }}
-                                <div class="form-control-wrapper">
-                                    <i class="material-icons form-control-icon">lock_outline</i>
-                                    {{ form.confirm_password(class="form-control", placeholder="     رمز عبور خود را تکرار کنید") }}
-                                </div>
+                                {{ form.confirm_password(class="form-control") }}
                                 {% if form.confirm_password.errors %}
                                     {% for error in form.confirm_password.errors %}
-                                        <div class="error-message">
-                                            <i class="material-icons" style="font-size: 16px;">error_outline</i>
-                                            {{ error }}
-                                        </div>
+                                        <div class="error-message">{{ error }}</div>
                                     {% endfor %}
                                 {% endif %}
                             </div>
@@ -507,32 +488,20 @@
                             
                             <div class="form-group">
                                 {{ login_form.username.label(class="form-label") }}
-                                <div class="form-control-wrapper">
-                                    <i class="material-icons form-control-icon">person</i>
-                                    {{ login_form.username(class="form-control", placeholder="     نام کاربری خود را وارد کنید") }}
-                                </div>
+                                {{ login_form.username(class="form-control") }}
                                 {% if login_form.username.errors %}
                                     {% for error in login_form.username.errors %}
-                                        <div class="error-message">
-                                            <i class="material-icons" style="font-size: 16px;">error_outline</i>
-                                            {{ error }}
-                                        </div>
+                                        <div class="error-message">{{ error }}</div>
                                     {% endfor %}
                                 {% endif %}
                             </div>
                             
                             <div class="form-group">
                                 {{ login_form.password.label(class="form-label") }}
-                                <div class="form-control-wrapper">
-                                    <i class="material-icons form-control-icon">lock</i>
-                                    {{ login_form.password(class="form-control", placeholder="     رمز عبور خود را وارد کنید") }}
-                                </div>
+                                {{ login_form.password(class="form-control") }}
                                 {% if login_form.password.errors %}
                                     {% for error in login_form.password.errors %}
-                                        <div class="error-message">
-                                            <i class="material-icons" style="font-size: 16px;">error_outline</i>
-                                            {{ error }}
-                                        </div>
+                                        <div class="error-message">{{ error }}</div>
                                     {% endfor %}
                                 {% endif %}
                             </div>
@@ -569,8 +538,28 @@
             document.getElementById(tabName + '-tab').classList.add('active');
             
             // Add active class to clicked tab button
-            event.target.classList.add('active');
+            event.target.closest('.auth-tab').classList.add('active');
         }
+        
+        // Auto-switch to login tab if there's a success message after registration
+        document.addEventListener('DOMContentLoaded', () => {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            let hasSuccessMessage = false;
+            
+            flashMessages.forEach(msg => {
+                if (msg.classList.contains('success')) {
+                    hasSuccessMessage = true;
+                }
+            });
+            
+            // If there's a success message, switch to login tab
+            if (hasSuccessMessage) {
+                document.getElementById('register-tab').classList.remove('active');
+                document.getElementById('login-tab').classList.add('active');
+                document.querySelectorAll('.auth-tab')[0].classList.remove('active');
+                document.querySelectorAll('.auth-tab')[1].classList.add('active');
+            }
+        });
     </script>
 </body>
 </html>
