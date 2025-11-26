@@ -1,3 +1,6 @@
+import eventlet
+eventlet.monkey_patch() # <--- حیاتی: این خط باید حتما اولین خط باشد
+
 import os
 from datetime import datetime
 from functools import wraps
@@ -13,16 +16,25 @@ from flask_socketio import SocketIO, emit, join_room
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+# --- تنظیمات اولیه ---
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_key_change_in_prod')
 
+# تنظیم دیتابیس (پستگرس برای رندر، یا اس‌کیو‌لایت برای لوکال)
 database_url = os.getenv("DATABASE_URL")
 if not database_url:
     basedir = os.path.abspath(os.path.dirname(__file__))
     database_url = 'sqlite:///' + os.path.join(basedir, 'app.db')
 else:
+    # اصلاح باگ شناخته شده در برخی نسخه‌های SQLAlchemy با آدرس‌های رندر
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+# حیاتی برای جلوگیری از خطای قطع اتصال دیتابیس در حالت Eventlet
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+}
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -32,6 +44,8 @@ migrate = Migrate(app, db)
 limiter = Limiter(key_func=get_remote_address, app=app, storage_uri="memory://")
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
+# --- مدیریت وضعیت آنلاین‌ها (بدون Redis) ---
+# استفاده از ست پایتون برای ذخیره آی‌دی کاربران آنلاین در حافظه رم
 ONLINE_USERS_MEMORY = set()
 
 class StateManager:
@@ -48,6 +62,7 @@ class StateManager:
     def is_online(user_id):
         return user_id in ONLINE_USERS_MEMORY
 
+# --- مدل‌های دیتابیس ---
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
@@ -69,6 +84,7 @@ class Message(db.Model):
         Index('idx_sender_receiver_timestamp', 'sender_id', 'receiver_id', 'timestamp'),
     )
 
+# --- سرویس‌ها ---
 class AuthService:
     @staticmethod
     def register_user(name, major, password):
@@ -88,6 +104,7 @@ class AuthService:
 class ChatService:
     @staticmethod
     def get_inbox_conversations(user_id):
+        # کوئری پیشرفته برای گرفتن آخرین پیام هر مکالمه بدون حلقه فور
         other_user_id = case(
             (Message.sender_id == user_id, Message.receiver_id),
             else_=Message.sender_id
@@ -115,12 +132,13 @@ class ChatService:
                 'last_message_content': msg.content,
                 'last_message_timestamp': msg.timestamp,
                 'has_unread': unread > 0,
-                'is_online': StateManager.is_online(other_user.id)
+                'is_online': StateManager.is_online(other_user.id) 
             })
         return conversations
 
     @staticmethod
     def get_chat_history(current_user_id, other_user_id, limit=50):
+        # خوانده شدن پیام‌ها
         Message.query.filter(
             and_(Message.sender_id == other_user_id, 
                  Message.receiver_id == current_user_id, 
@@ -128,6 +146,7 @@ class ChatService:
         ).update({Message.read_at: func.now()}, synchronize_session=False)
         db.session.commit()
 
+        # دریافت پیام‌ها
         messages = Message.query.filter(
             or_(
                 and_(Message.sender_id == current_user_id, Message.receiver_id == other_user_id),
@@ -144,6 +163,7 @@ class ChatService:
         db.session.commit()
         return msg
 
+# --- فرم‌ها ---
 MAJOR_CHOICES = [('', 'رشته خود را انتخاب کنید'), ('مهندسی کامپیوتر', 'مهندسی کامپیوتر'), ('علوم کامپیوتر', 'علوم کامپیوتر')]
 
 class RegistrationForm(FlaskForm):
@@ -182,6 +202,7 @@ class UpdatePasswordForm(FlaskForm):
 class DeleteAccountForm(FlaskForm):
     submit = SubmitField('حذف حساب کاربری')
 
+# --- دکوراتورها ---
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -191,6 +212,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# *** تابع context_processor اصلاح شده ***
 @app.context_processor
 def inject_user():
     user_id = session.get('current_user_id')
@@ -198,6 +220,7 @@ def inject_user():
         return dict(current_user=User.query.get(user_id), current_user_id=user_id)
     return dict(current_user=None, current_user_id=None)
 
+# --- روت‌ها ---
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -320,7 +343,7 @@ def delete_account():
 def chat(other_user_id):
     current_user_id = session['current_user_id']
     if current_user_id == other_user_id:
-        return redirect(url_for('inbox', user_id=current_user_id))
+        return redirect(url_for('inbox'))
     
     other_user = User.query.get_or_404(other_user_id)
     messages = ChatService.get_chat_history(current_user_id, other_user_id)
@@ -337,6 +360,7 @@ def inbox():
 def check_user_online(user_id):
     return jsonify({'online': StateManager.is_online(user_id)})
 
+# --- سوکت هندلرها ---
 @socketio.on('connect')
 def handle_connect():
     current_user_id = session.get('current_user_id')
