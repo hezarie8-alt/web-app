@@ -312,10 +312,7 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="site-logo">
-                یونی نت
-            </a>
+            <a href="{{ url_for('index') }}" class="navbar-brand">یونی نت</a>
             <ul class="navbar-nav">
                 {% if current_user %}
                     <li><a href="{{ url_for('match') }}">جستجوی کاربران</a></li>
