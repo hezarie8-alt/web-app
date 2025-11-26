@@ -193,9 +193,10 @@ def login_required(f):
 
 @app.context_processor
 def inject_user():
-    if 'current_user_id' in session and session['current_user_id']:
-        return dict(current_user=User.query.get(session['current_user_id']))
-    return dict(current_user=None)
+    user_id = session.get('current_user_id')
+    if user_id:
+        return dict(current_user=User.query.get(user_id), current_user_id=user_id)
+    return dict(current_user=None, current_user_id=None)
 
 @app.route('/')
 def index():
