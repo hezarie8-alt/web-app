@@ -514,7 +514,7 @@
                 <li><a href="{{ url_for('about') }}">درباره ما</a></li>
                 <li><a href="{{ url_for('match') }}">جستجوی کاربران</a></li>
                 {% if current_user %}
-                    <li><a href="{{ url_for('inbox', user_id=current_user.id) }}">صندوق پیام</a></li>
+                    <li><a href="{{ url_for('inbox') }}">صندوق پیام</a></li>
                     <li><a href="{{ url_for('profile', user_id=current_user.id) }}">پروفایل</a></li>
                     <li><a href="{{ url_for('logout') }}">خروج</a></li>
                 {% endif %}
@@ -589,7 +589,7 @@
                                 ویرایش اطلاعات پروفایل
                             </h2>
                             
-                            <form method="POST" action="{{ url_for('update_profile', user_id=user.id) }}">
+                            <form method="POST" action="{{ url_for('update_profile') }}">
                                 {{ update_profile_form.hidden_tag() }}
                                 
                                 <div class="form-group">
@@ -695,7 +695,7 @@
                                 </p>
                             </div>
                             
-                            <form method="POST" action="{{ url_for('delete_account', user_id=user_id) }}" onsubmit="return confirmDeleteAccount()">
+                            <form method="POST" action="{{ url_for('delete_account') }}" onsubmit="return confirmDeleteAccount()">
                                 {{ delete_account_form.hidden_tag() }}
                                 
                                 <div class="form-actions">

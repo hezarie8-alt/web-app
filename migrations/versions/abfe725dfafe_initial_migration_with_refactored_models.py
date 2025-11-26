@@ -1,8 +1,8 @@
-"""Initial migration for production
+"""Initial migration with refactored models
 
-Revision ID: 624bc0612695
+Revision ID: abfe725dfafe
 Revises: 
-Create Date: 2025-11-22 23:50:13.798138
+Create Date: 2025-11-26 00:12:08.336237
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '624bc0612695'
+revision = 'abfe725dfafe'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,8 +22,8 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('major', sa.String(length=100), nullable=True),
-    sa.Column('grade', sa.String(length=50), nullable=True),
     sa.Column('password_hash', sa.String(length=128), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
@@ -33,6 +33,7 @@ def upgrade():
     sa.Column('receiver_id', sa.Integer(), nullable=False),
     sa.Column('content', sa.Text(), nullable=False),
     sa.Column('timestamp', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('read_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['receiver_id'], ['user.id'], ),
     sa.ForeignKeyConstraint(['sender_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')

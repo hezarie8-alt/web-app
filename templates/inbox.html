@@ -242,6 +242,7 @@
             font-weight: 700;
             flex-shrink: 0;
             margin-left: 1rem;
+            position: relative; /* For positioning the online indicator */
         }
         
         .conversation-content {
@@ -256,10 +257,24 @@
             margin-bottom: 0.25rem;
         }
         
+        .conversation-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
         .conversation-name {
             font-size: 1.1rem;
             font-weight: 600;
             color: var(--text-primary);
+        }
+        
+        .online-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--success);
+            border: 2px solid var(--surface);
         }
         
         .conversation-time {
@@ -364,7 +379,7 @@
                 <li><a href="{{ url_for('index') }}">صفحه اصلی</a></li>
                 <li><a href="{{ url_for('about') }}">درباره ما</a></li>
                 <li><a href="{{ url_for('match') }}">جستجوی کاربران</a></li>
-                <li><a href="{{ url_for('inbox', user_id=current_user.id) }}">صندوق پیام</a></li>
+                <li><a href="{{ url_for('inbox') }}">صندوق پیام</a></li>
                 <li><a href="{{ url_for('profile', user_id=current_user.id) }}">پروفایل</a></li>
                 <li><a href="{{ url_for('logout') }}">خروج</a></li>
             </ul>
@@ -413,11 +428,18 @@
                     {% if conversations %}
                         {% for conversation in conversations %}
                             <a href="{{ url_for('chat', other_user_id=conversation.other_user_id) }}" class="conversation-item {% if conversation.has_unread %}unread{% endif %}">
-                                <div class="conversation-avatar">{{ conversation.other_user_name[0] }}</div>
+                                <div class="conversation-avatar">
+                                    {{ conversation.other_user_name[0] }}
+                                    {% if conversation.is_online %}
+                                        <span class="online-indicator"></span>
+                                    {% endif %}
+                                </div>
                                 
                                 <div class="conversation-content">
                                     <div class="conversation-header">
-                                        <div class="conversation-name">{{ conversation.other_user_name }}</div>
+                                        <div class="conversation-name-wrapper">
+                                            <div class="conversation-name">{{ conversation.other_user_name }}</div>
+                                        </div>
                                         <div class="conversation-time">{{ conversation.last_message_timestamp.strftime('%H:%M') if conversation.last_message_timestamp else '' }}</div>
                                     </div>
                                     
